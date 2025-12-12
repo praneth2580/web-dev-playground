@@ -1,0 +1,479 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Random Wallpaper Generator</title>
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            width: 100%;
+            height: 100%;
+            font-family: sans-serif;
+            background: black;
+        }
+
+        #wallpaper {
+            width: 100%;
+            height: 100%;
+            transition: background 1.5s ease;
+        }
+
+        .control-panel {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+            z-index: 2;
+        }
+
+        button {
+            padding: .5rem 1rem;
+            background: #00000080;
+            border: none;
+            color: white;
+            font-weight: 700;
+            border-radius: 3px;
+            cursor: pointer;
+            user-select: none;
+            transition: background 0.2s;
+        }
+
+        button:hover {
+            background: #ffffff60;
+            border: 1px solid #ffffff60;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 1px;
+        }
+
+        .button-group button {
+            border-radius: 0;
+        }
+
+        .button-group button:first-child {
+            border-top-left-radius: 5px;
+            border-bottom-left-radius: 5px;
+        }
+
+        .button-group button:last-child {
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+        }
+
+        .button-group button+button {
+            margin-left: -1px;
+        }
+
+        .top-right-bar {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            display: flex;
+            gap: .5rem;
+        }
+
+        .color-pallete {
+            display: flex;
+            flex-direction: row;
+            flex-wrap: nowrap;
+            align-items: center;
+            gap: 5px;
+            background-color: #ffffff80;
+            padding: 4px;
+            border-radius: 2px;
+        }
+
+        .color-container {
+            width: 2rem;
+            height: 2rem;
+            border: 1px solid #ffffffbf;
+        }
+
+        #download {
+            padding: 0.5rem 0.75rem;
+            border: none;
+            font-weight: 700;
+            border-radius: 5rem;
+            cursor: pointer;
+            user-select: none;
+        }
+
+        .top-left-bar {
+            position: fixed;
+            left: 10px;
+            top: 10px;
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            background-color: #00000029;
+            border-radius: 2rem;
+            padding-right: 1rem;
+            color: white;
+
+            &.animator {
+                animation: showin 1.3s ease forwards;
+            }
+        }
+
+        p.interval-time-in-sec {
+            padding: .5rem .8rem;
+            background-color: black;
+            margin: 0;
+            border-radius: 2rem;
+            font-weight: 900;
+            border: 2px solid black;
+            text-align: center;
+            
+            &.animator {
+                animation: scaleIn 1s ease forwards;
+            }
+        }
+
+        p.interval-text {
+            font-size: x-small;
+            font-weight: 700;
+            color: #ffffff80;
+
+            &.animator {
+                animation: scrollRight 1s ease forwards;
+            }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        @keyframes scaleIn {
+            from {
+                opacity: 0;
+                transform: scale(0);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        @keyframes scrollRight {
+            from {
+                opacity: 0;
+                transform: translateX(-95px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+
+        @keyframes showin {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/7.0.1/css/all.min.css"
+        integrity="sha512-2SwdPD6INVrV/lHTZbO2nodKhrnDdJK9/kg2XD1r9uGqPo1cUbujc+IYdlYdEErWNu69gVcYgdxlmVmzTWnetw=="
+        crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+</head>
+
+<body>
+
+    <div id="interval" class="top-left-bar hidden">
+        <p id="interval-secs" class="interval-time-in-sec">5</p>
+        <p id="interval-text" class="interval-text">NEXT IMAGE IN...</p>
+    </div>
+
+    <div class="top-right-bar">
+        <div class="color-pallete" id="color-pallete">
+        </div>
+        <button id="download"><i class="fa-solid fa-arrow-down"></i></button>
+    </div>
+
+    <div id="wallpaper"></div>
+
+    <div class="control-panel">
+        <button id="prev-wallpaper">Prev</button>
+        <div class="button-group">
+            <button id="prev-pattern">Prev Pattern</button>
+            <button id="next-pattern">Next Pattern</button>
+        </div>
+        <button id="randomize">Surprise Me</button>
+        <button id="next-wallpaper">Next</button>
+    </div>
+
+    <script>
+        const wallpaper = document.getElementById("wallpaper");
+        const colorPallete = document.getElementById('color-pallete');
+        const intervalContainer = document.getElementById('interval');
+        const intervalSecs = document.getElementById('interval-secs');
+        const intervalText = document.getElementById('interval-text');
+
+        // utility to create random colors
+        function randomColor() {
+            return `hsl(${Math.random() * 360}, ${50 + Math.random() * 50}%, ${40 + Math.random() * 30}%)`;
+        }
+
+        // wallpaper generators
+        const wallpaperTypes = [
+            // 1️⃣ Simple linear gradient
+            () => {
+                const c1 = randomColor(), c2 = randomColor();
+                const angle = Math.floor(Math.random() * 360);
+                return {
+                    class: `linear-gradient(${angle}deg, ${c1}, ${c2})`,
+                    colors: [c1, c2],
+                    title: "Smooth Linear Gradient",
+                    renderer: "drawLinearGradient",
+                    angle
+                };
+            },
+
+            // 2️⃣ Layered linear gradients (gives depth or mist-like effect)
+            () => {
+                const c1 = randomColor(), c2 = randomColor(), c3 = randomColor(), c4 = randomColor(), c5 = randomColor();
+                const angle = Math.floor(Math.random() * 360);
+                const calcAngle = Math.floor(Math.random() * 90);
+                return {
+                    class: `linear-gradient(${angle + calcAngle}deg, #00000000, ${c3}),
+                    linear-gradient(${(angle + calcAngle) - 90}deg, #00000000, ${c4}),
+                    linear-gradient(${angle}deg, ${c1}, ${c2})`,
+                    colors: [c1, c2, c3, c4, c5],
+                    title: "Layered Gradient Blend",
+                    renderer: "drawLinearGradient",
+                    angle
+                };
+            },
+
+            // 3️⃣ Conic gradient (radiating swirl or color wheel)
+            () => {
+                const c1 = randomColor(), c2 = randomColor(), c3 = randomColor();
+                return {
+                    class: `conic-gradient(${c1}, ${c3}, ${c2}, ${c1})`,
+                    colors: [c1, c2, c3],
+                    title: "Conic Swirl Pattern",
+                    renderer: "drawConicGradient"
+                };
+            },
+
+            // 4️⃣ Repeating linear pattern (striped look)
+            () => {
+                const c1 = randomColor(), c2 = randomColor();
+                const size = 50 + Math.random() * 100;
+                return {
+                    class: `repeating-linear-gradient(45deg, ${c1}, ${c1} ${size}px, ${c2} ${size}px, ${c2} ${size * 2}px)`,
+                    colors: [c1, c2],
+                    title: "Diagonal Stripe Pattern",
+                    renderer: "drawRepeatingLinearGradient",
+                    size,
+                    angle: 45
+                };
+            },
+
+            // 5️⃣ Repeating radial gradient (concentric circles)
+            () => {
+                const c1 = randomColor(), c2 = randomColor();
+                const size = 40 + Math.random() * 80;
+                return {
+                    class: `repeating-radial-gradient(circle, ${c1}, ${c1} ${size / 2}px, ${c2} ${size / 2}px, ${c2} ${size}px)`,
+                    colors: [c1, c2],
+                    title: "Concentric Circle Pattern",
+                    renderer: "drawRepeatingRadialGradient",
+                    size
+                };
+            },
+
+            // 6️⃣ Repeating conic gradient (rotational pie-slice pattern)
+            () => {
+                const c1 = randomColor(), c2 = randomColor();
+                const size = 80 + Math.random() * 100;
+                return {
+                    class: `repeating-conic-gradient(from 45deg, ${c1} 0deg 30deg, ${c2} 30deg 60deg)`,
+                    colors: [c1, c2],
+                    title: "Rotating Pie Slice Pattern",
+                    renderer: "drawConicGradient",
+                    size,
+                    startAngle: 45
+                };
+            },
+
+            // 7️⃣ Complex radial pattern (multi-layered concentric rings)
+            () => {
+                const c1 = randomColor(), c2 = randomColor(), c3 = randomColor(), c4 = randomColor(), c5 = randomColor();
+                const size = 80 + Math.random() * 100;
+                return {
+                    class: `repeating-radial-gradient(circle, ${c1}, ${c1} ${size / 2}px, ${c2} ${size / 2}px, ${c3} ${size / 4}px, ${c4} ${size / 4}px, ${c5} ${size}px)`,
+                    colors: [c1, c2, c3, c4, c5],
+                    title: "Multi-Layer Radial Rings",
+                    renderer: "drawRepeatingRadialGradient",
+                    size
+                };
+            }
+        ];
+
+        let currentType = 0;
+        let currentPatternIndex = 0;
+        let currentWallpaper = null;
+        const patternsPerType = 10;
+        const WallpaperRegenerateIntervalInMins = 1;
+        const WallpaperRegenerateInterval = WallpaperRegenerateIntervalInMins * (1000 * 60);
+        const WallpaperRegenerateIntervalShowDelayinSecs = 10;
+        const WallpaperRegenerateIntervalShowDelay = WallpaperRegenerateIntervalShowDelayinSecs * 1000;
+        let wallpaperGenerationInterval, currentWallpaperGenerationIntervalLoopCount = 0;
+
+        function generateWallpaper() {
+            currentWallpaper = wallpaperTypes[currentType]();
+            wallpaper.style.background = currentWallpaper.class;
+            colorPallete.innerHTML = "";
+            for (color in currentWallpaper.colors) {
+                colorPallete.innerHTML += '<div class="color-container" style="background-color: ' + currentWallpaper.colors[color] + ';"></div>'
+            }
+            setIntervalSecs(null);
+        }
+
+        function setupWallpaperGenerator(duration) {
+            clearInterval(wallpaperGenerationInterval)
+            wallpaperGenerationInterval = setInterval(() => {
+                currentPatternIndex++;
+                const prinableInterval = (WallpaperRegenerateInterval / WallpaperRegenerateIntervalShowDelay) - currentPatternIndex;
+                // if (prinableInterval <= 5) 
+                setIntervalSecs(prinableInterval);
+                if (currentPatternIndex >= (WallpaperRegenerateInterval / WallpaperRegenerateIntervalShowDelay)) {
+                    generateWallpaper();
+                    currentPatternIndex = 0;
+                }
+            }, duration);
+        };
+
+        // TIMER ANIMATOR
+        function resetAnimator(elem) {
+            elem.classList.remove('hidden');
+
+            // 🔁 Re-trigger animation
+            elem.classList.remove('animator');
+            void elem.offsetWidth; // 👈 forces reflow to reset animation
+            elem.classList.add('animator');
+        }
+
+        function setIntervalSecs(secs) {
+            if (secs <= 5 && secs > 0 && secs) {
+                intervalSecs.innerHTML = secs;
+                resetAnimator(intervalSecs);
+
+                if (secs == 5) {
+                    resetAnimator(intervalContainer);
+                    resetAnimator(intervalText);
+                }
+            } else {
+                intervalContainer.classList.add('hidden');
+            }
+        }
+
+        // CANVAS CUSTOM RENDER
+        function renderCSSToCanvas(cssBackground, width = 1920, height = 1080) {
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d');
+
+            // Create a temporary offscreen div with the CSS background
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'fixed';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            tempDiv.style.width = `${width}px`;
+            tempDiv.style.height = `${height}px`;
+            tempDiv.style.background = cssBackground;
+            document.body.appendChild(tempDiv);
+
+            // Use the CSS paint via drawImage
+            const dataUrl = `data:image/svg+xml;charset=utf-8,` + encodeURIComponent(`
+                <svg xmlns="http://www.w3.org/2000/svg" width="${width}" height="${height}">
+                    <foreignObject width="100%" height="100%">
+                        <div xmlns="http://www.w3.org/1999/xhtml" style="width:${width}px;height:${height}px;background:${cssBackground};"></div>
+                    </foreignObject>
+                </svg>
+            `);
+
+            const img = new Image();
+            return new Promise(resolve => {
+                img.onload = () => {
+                    ctx.drawImage(img, 0, 0, width, height);
+                    document.body.removeChild(tempDiv);
+                    resolve(canvas);
+                };
+                img.src = dataUrl;
+            });
+        }
+
+        // SETTING UP CLICK LISTENERS
+        document.getElementById("prev-pattern").onclick = () => {
+            currentType = (currentType - 1 + wallpaperTypes.length) % wallpaperTypes.length;
+            currentPatternIndex = 0;
+            generateWallpaper();
+            setupWallpaperGenerator(WallpaperRegenerateIntervalShowDelay);
+        };
+
+        document.getElementById("next-pattern").onclick = () => {
+            currentType = (currentType + 1) % wallpaperTypes.length;
+            currentPatternIndex = 0;
+            generateWallpaper();
+            setupWallpaperGenerator(WallpaperRegenerateIntervalShowDelay);
+        };
+
+        document.getElementById("prev-wallpaper").onclick = () => {
+            currentPatternIndex = (currentPatternIndex - 1 + patternsPerType) % patternsPerType;
+            generateWallpaper();
+            setupWallpaperGenerator(WallpaperRegenerateIntervalShowDelay);
+        };
+
+        document.getElementById("next-wallpaper").onclick = () => {
+            currentPatternIndex = (currentPatternIndex + 1) % patternsPerType;
+            generateWallpaper();
+            setupWallpaperGenerator(WallpaperRegenerateIntervalShowDelay);
+        };
+
+        document.getElementById("randomize").onclick = () => {
+            currentType = Math.floor(Math.random() * wallpaperTypes.length);
+            currentPatternIndex = Math.floor(Math.random() * patternsPerType);
+            generateWallpaper();
+            setupWallpaperGenerator(WallpaperRegenerateIntervalShowDelay);
+        };
+
+
+        const canvas = document.createElement('canvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = 1920;
+        canvas.height = 1080;
+        document.getElementById('download').onclick = () => {
+            renderCSSToCanvas(currentWallpaper.class).then(canvas => {
+                const link = document.createElement('a');
+                link.download = `${currentWallpaper.title.replace(/\s+/g, '-')}-${Date.now()}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+            });
+        }
+
+        // initialize wallpaper
+        generateWallpaper();
+        // setupWallpaperGenerator(WallpaperRegenerateIntervalShowDelay);
+    </script>
+</body>
+
+</html>

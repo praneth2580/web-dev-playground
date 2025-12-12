@@ -1,0 +1,614 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Quote Writer — Instagram Post Creator</title>
+    <style>
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 100%;
+            height: 35px;
+
+            &.h-full {
+                height: 100% !important;
+            }
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+        }
+    </style>
+    <script src="./bundle.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+
+<body class="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 text-slate-100 font-inter">
+    <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-6 p-6">
+        <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6">
+            <h1 class="text-xl font-semibold mb-2">Quote Writer — Create Instagram Posts</h1>
+            <p class="text-slate-400 text-sm mb-4">Write a quote, customize styles, and export it as a PNG for
+                Instagram.</p>
+
+            <label class="text-slate-400 text-sm">Quote</label>
+            <textarea id="quote" class="w-full p-3 rounded-lg bg-slate-900/60 border border-slate-700 text-sm mb-2"
+                placeholder="Write something inspiring...">Believe you can and you're halfway there.</textarea>
+
+            <button id="randomBtn"
+                class="flex-1 bg-teal-500 hover:bg-teal-400 text-slate-900 font-semibold py-2 rounded-lg mb-4 w-full">Randomize</button>
+
+            <label class="text-slate-400 text-sm">Author (optional)</label>
+            <input id="author" class="w-full p-3 rounded-lg bg-slate-900/60 border border-slate-700 text-sm mb-4"
+                type="text" placeholder="Unknown" value="Theodore Roosevelt" />
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="text-slate-400 text-sm">Font</label>
+                    <select id="font" class="w-full p-3 rounded-lg bg-slate-900/60 border border-slate-700 text-sm">
+                        <option value="48px 'Georgia', serif">Serif — Georgia</option>
+                        <option value="46px 'Helvetica Neue', Arial, sans-serif">Sans — Helvetica</option>
+                        <option value="54px 'Brush Script MT', cursive">Script — Brush</option>
+                        <option value="48px 'Times New Roman', Times, serif">Times</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-slate-400 text-sm">Text scale</label>
+                    <input id="size" type="range" min="28" max="84" value="48" class="w-full" />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-4 gap-4 mb-4">
+                <div>
+                    <label class="text-slate-400 text-sm">Text color</label>
+                    <input id="textColor" type="color" value="#ffffff" class="w-full h-10" />
+                </div>
+                <div>
+                    <label class="text-slate-400 text-sm">Accent color</label>
+                    <input id="accentColor" type="color" value="#06b6d4" class="w-full h-10" />
+                </div>
+                <div>
+                    <label class="text-slate-400 text-sm">Text Style</label>
+                    <select id="textStyle"
+                        class="w-full p-3 rounded-lg bg-slate-900/60 border border-slate-700 text-sm">
+                        <option value="" selected>Normal</option>
+                        <option value="oblique">Oblique</option>
+                        <option value="italic">Italic</option>
+                    </select>
+                </div>
+                <div>
+                    <label class="text-slate-400 text-sm">Text Weight</label>
+                    <select id="textWeight"
+                        class="w-full p-3 rounded-lg bg-slate-900/60 border border-slate-700 text-sm">
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="300">300</option>
+                        <option value="400">400</option>
+                        <option value="500" selected>500</option>
+                        <option value="600">600</option>
+                        <option value="700">700</option>
+                        <option value="800">800</option>
+                        <option value="900">900</option>
+                    </select>
+                </div>
+            </div>
+
+            <label class="text-slate-400 text-sm">Background</label>
+            <div class="flex flex-wrap gap-3 mb-4 mt-1">
+                <button class="bg-slate-900/70 rounded-lg px-3 py-2 text-sm" data-bg="#111827">Dark</button>
+                <button class="bg-slate-100 text-slate-800 rounded-lg px-3 py-2 text-sm"
+                    data-bg="#f8fafc">Light</button>
+                <div class="bg-slate-700/60 rounded-lg p-0 w-10">
+                    <input type="color" id="solidBg" class="h-full rounded-lg">
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-3 mb-4 mt-1">
+                <button class="bg-gradient-to-r from-purple-600 to-cyan-400 rounded-lg px-3 py-2 text-sm"
+                    data-bg="135deg,#7c3aed,#06b6d4">Purple → Teal</button>
+                <button class="bg-gradient-to-r from-orange-500 to-pink-500 rounded-lg px-3 py-2 text-sm"
+                    data-bg="180deg,#f97316,#f43f5e">Orange → Pink</button>
+                <div class="bg-slate-700/60 flex rounded-lg p-0 w-20">
+                    <input type="color" id="gradientBg1" value="#000000" class="h-full rounded-l-lg">
+                    <input type="color" id="gradientBg2" value="#ffffff" class="h-full rounded-r-lg">
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-3 mb-4 mt-1">
+                <label class="text-slate-400 text-sm">Gradient Angle</label>
+                <input id="gradientAngle" type="range" min="0" max="360" value="45" step="1" class="w-full" />
+            </div>
+            <div class="flex flex-wrap gap-3 mb-4 mt-1">
+                <button id="suggestedBg" class="bg-slate-700/60 rounded-lg px-3 py-2 text-sm">Surprise Me</button>
+                <button id="uploadBg" class="bg-slate-700/60 rounded-lg px-3 py-2 text-sm">Upload image</button>
+            </div>
+            <input id="bgFile" type="file" accept="image/*" class="hidden" />
+
+            <label class="text-slate-400 text-sm">Export size</label>
+            <select id="sizeSelect" class="w-full p-3 rounded-lg bg-slate-900/60 border border-slate-700 text-sm mb-4">
+                <option value="1080">Instagram post — 1080×1080</option>
+                <option value="1350">Instagram portrait — 1080×1350</option>
+                <option value="1920">Story — 1080×1920</option>
+            </select>
+
+            <div class="flex gap-3 mb-3">
+                <button id="renderBtn"
+                    class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold py-2 rounded-lg">Render</button>
+                <button id="downloadBtn"
+                    class="flex-1 bg-emerald-400 hover:bg-emerald-300 text-slate-900 font-semibold py-2 rounded-lg">Download</button>
+                <button id="downloadVideoBtn"
+                    class="flex-1 bg-yellow-400 hover:bg-yellow-300 text-slate-900 font-semibold py-2 rounded-lg">Download
+                    Video</button>
+                <button id="copyCaption"
+                    class="flex-1 bg-purple-500 hover:bg-purple-400 text-white font-semibold py-2 rounded-lg">Copy
+                    Caption</button>
+            </div>
+
+            <p class="text-xs text-slate-400">Tip: Instagram desktop upload may not work for all browsers; download and
+                share manually.</p>
+        </div>
+
+        <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 flex flex-col items-center justify-center">
+            <p class="text-slate-400 text-sm mb-2">Preview</p>
+            <div class="bg-white rounded-xl overflow-hidden shadow-md">
+                <canvas id="preview" width="540" height="540" class="block"></canvas>
+            </div>
+            <p id="resInfo" class="text-slate-400 text-sm mt-3">1080×1080</p>
+        </div>
+    </div>
+
+    <script>
+        const qoutesApiUrl = "https://api.adviceslip.com/advice";
+
+        // JS logic same as before
+        const quoteEl = document.getElementById('quote');
+        const authorEl = document.getElementById('author');
+        const fontEl = document.getElementById('font');
+        const sizeEl = document.getElementById('size');
+        const textColorEl = document.getElementById('textColor');
+        const textStyleEl = document.getElementById('textStyle');
+        const textWeightEl = document.getElementById('textWeight');
+        const accentEl = document.getElementById('accentColor');
+        const randomBtn = document.getElementById('randomBtn');
+        const renderBtn = document.getElementById('renderBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const downloadVideoBtn = document.getElementById('downloadVideoBtn');
+        const copyCaptionBtn = document.getElementById('copyCaption');
+        const preview = document.getElementById('preview');
+        const ctx = preview.getContext('2d');
+        const options = document.querySelectorAll('[data-bg]');
+        const bgFile = document.getElementById('bgFile');
+        const solidBg = document.getElementById('solidBg');
+        const gradientBg1 = document.getElementById('gradientBg1');
+        const gradientBg2 = document.getElementById('gradientBg2');
+        const gradientAngle = document.getElementById('gradientAngle');
+        const suggestedBg = document.getElementById('suggestedBg');
+        const uploadBg = document.getElementById('uploadBg');
+        const sizeSelect = document.getElementById('sizeSelect');
+        const resInfo = document.getElementById('resInfo');
+
+        let backgroundStyle = '#111827';
+        let backgroundImage = null;
+        let animationRunning = false;
+
+        function setPreviewResolution(targetBase) {
+            const baseW = 1080;
+            let height = parseInt(targetBase, 10);
+            let width = 1080;
+            const scale = .5;
+            preview.width = Math.round(width * scale);
+            preview.height = Math.round(height * scale);
+            resInfo.textContent = `${width}×${height}`;
+        }
+
+        sizeSelect.addEventListener('change', () => setPreviewResolution(sizeSelect.value));
+        setPreviewResolution(sizeSelect.value);
+
+        function extractColors(value) {
+            if (value.includes(',')) {
+                const data = value.split(",");
+                return [data[1], data[2], data[0]];
+            }
+
+            return value;
+        }
+
+        function mixColors(color1, color2, weight = 0.5) {
+            // Remove the "#" if present
+            color1 = color1.replace('#', '');
+            color2 = color2.replace('#', '');
+
+            // Convert hex to RGB
+            const r1 = parseInt(color1.substring(0, 2), 16);
+            const g1 = parseInt(color1.substring(2, 4), 16);
+            const b1 = parseInt(color1.substring(4, 6), 16);
+
+            const r2 = parseInt(color2.substring(0, 2), 16);
+            const g2 = parseInt(color2.substring(2, 4), 16);
+            const b2 = parseInt(color2.substring(4, 6), 16);
+
+            // Mix the colors (default: 50% blend)
+            const r = Math.round(r1 + (r2 - r1) * weight);
+            const g = Math.round(g1 + (g2 - g1) * weight);
+            const b = Math.round(b1 + (b2 - b1) * weight);
+
+            // Convert back to hex
+            const toHex = v => v.toString(16).padStart(2, '0');
+            return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
+        }
+
+        // compute gradient endpoints that span the canvas for a given angle (degrees)
+        function gradientEndpointsForAngle(angleDeg, w, h) {
+            const angle = (angleDeg % 360) * Math.PI / 180; // radians
+            // unit vector for the angle
+            const ux = Math.cos(angle);
+            const uy = Math.sin(angle);
+
+            // center of canvas
+            const cx = w / 2;
+            const cy = h / 2;
+
+            // length to extend in each direction: half of canvas diagonal ensures full coverage
+            const halfDiagonal = Math.sqrt(w * w + h * h) / 2;
+
+            // start and end points along the direction vector, centered at canvas center
+            const x0 = cx - ux * halfDiagonal;
+            const y0 = cy - uy * halfDiagonal;
+            const x1 = cx + ux * halfDiagonal;
+            const y1 = cy + uy * halfDiagonal;
+
+            return { x0, y0, x1, y1 };
+        }
+
+        function getGradientFromSentiment(quote) {
+            const sentiment = new window.sentiment();
+            const result = sentiment.analyze(quote);
+            const score = result.score;
+
+            console.log(`Sentiment score: ${score}`);
+
+            // Helper: randomly pick a color pair and direction
+            function pickGradient(choices) {
+                const gradient = choices[Math.floor(Math.random() * choices.length)];
+                const angle = [30, 45, 60, 90, 120][Math.floor(Math.random() * 5)];
+                return [...gradient, angle];
+            }
+
+            // 🎨 Gradient sets per mood
+            const gradients = {
+                veryPositive: [
+                    ["#ff9a9e", "#fad0c4"],
+                    ["#fbc2eb", "#a6c1ee"],
+                    ["#fddb92", "#d1fdff"],
+                    ["#84fab0", "#8fd3f4"],
+                ],
+                mildlyPositive: [
+                    ["#a1c4fd", "#c2e9fb"],
+                    ["#89f7fe", "#66a6ff"],
+                    ["#a8edea", "#fed6e3"],
+                    ["#d4fc79", "#96e6a1"],
+                ],
+                neutral: [
+                    ["#fdfbfb", "#ebedee"],
+                    ["#d7d2cc", "#304352"],
+                    ["#cfd9df", "#e2ebf0"],
+                    ["#bdc3c7", "#2c3e50"],
+                ],
+                mildlyNegative: [
+                    ["#757f9a", "#d7dde8"],
+                    ["#636363", "#a2ab58"],
+                    ["#b8c6db", "#f5f7fa"],
+                    ["#9796f0", "#fbc7d4"],
+                ],
+                veryNegative: [
+                    ["#232526", "#414345"],
+                    ["#0f2027", "#203a43"],
+                    ["#373b44", "#4286f4"],
+                    ["#485563", "#29323c"],
+                ],
+            };
+
+            // 🔮 Mood mapping
+            if (score > 3) return pickGradient(gradients.veryPositive);
+            if (score > 1) return pickGradient(gradients.mildlyPositive);
+            if (score < -3) return pickGradient(gradients.veryNegative);
+            if (score < -1) return pickGradient(gradients.mildlyNegative);
+            return pickGradient(gradients.neutral);
+        }
+
+        // 1. Create prompt based on quote
+        function getAIPromptFromQuote(quote, moodScore) {
+            if (moodScore > 3) {
+                return `A bright sunrise with soft pink and orange tones, dreamy and hopeful background`;
+            } else if (moodScore > 1) {
+                return `A calm blue sky with gentle clouds, peaceful and uplifting background`;
+            } else if (moodScore < -3) {
+                return `A stormy dark landscape with lightning, dramatic and powerful background`;
+            } else if (moodScore < -1) {
+                return `A misty gray forest with subtle rain, reflective and somber background`;
+            } else {
+                return `Minimalist pastel gradient background, tranquil and subtle`;
+            }
+        }
+
+        // 2. Function to generate AI background and set it
+        async function generateAIBackgroundAndSet(quote) {
+            // const sentimentScore = /* compute score via your sentiment library */;
+            const prompt = getAIPromptFromQuote(quote, sentimentScore);
+
+            const model = "runwayml/stable-diffusion-v1-5";  // example model name
+            const apiURL = `https://api-inference.huggingface.co/models/${model}`;
+            const apiToken = "hf_YOUR_TOKEN_HERE";
+            const response = await fetch(apiURL, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiToken}`,
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    inputs: prompt,
+                    parameters: {
+                        width: 1024,
+                        height: 1024,
+                        guidance_scale: 7.5
+                    }
+                })
+            });
+
+            if (!response.ok) {
+                console.error("Image generation failed:", await response.text());
+                return;
+            }
+
+            const blob = await response.blob();
+            const img = new Image();
+            img.onload = () => {
+                backgroundImage = img;   // set your global backgroundImage variable
+                renderPreview();         // re-render your canvas with the new background
+            };
+            img.src = URL.createObjectURL(blob);
+        }
+
+
+        options.forEach(o => o.addEventListener('click', () => { backgroundStyle = extractColors(o.dataset.bg); backgroundImage = null; renderPreview(); }));
+        suggestedBg.addEventListener('click', () => {
+            backgroundImage = null;
+            backgroundStyle = getGradientFromSentiment(quoteEl.value);
+            renderPreview();
+        });
+        randomBtn.addEventListener('click', async () => {
+            const response = await fetch(qoutesApiUrl, {
+                method: "GET",
+                headers: {
+                    // "Authorization": `Bearer ${apiToken}`,
+                    "Content-Type": "application/json"
+                }
+            });
+
+            console.log(response)
+        });
+        uploadBg.addEventListener('click', () => bgFile.click());
+        bgFile.addEventListener('change', e => {
+            const f = e.target.files[0]; if (!f) return;
+            const url = URL.createObjectURL(f);
+            const img = new Image();
+            img.onload = () => { backgroundImage = img; URL.revokeObjectURL(url); renderPreview(); }
+            img.src = url;
+        });
+        solidBg.addEventListener('change', (e) => {
+            backgroundImage = null;
+            backgroundStyle = e.target.value;
+            renderPreview();
+        });
+        gradientBg1.addEventListener('change', (e) => {
+            backgroundImage = null;
+            if (typeof backgroundStyle === 'string') {
+                backgroundStyle = [e.target.value, gradientBg2.value];
+            } else {
+                backgroundStyle[0] = e.target.value;
+            }
+            renderPreview();
+        })
+        gradientBg2.addEventListener('change', (e) => {
+            backgroundImage = null;
+            if (typeof backgroundStyle === 'string') {
+                backgroundStyle = [gradientBg1.value, e.target.value];
+            } else {
+                backgroundStyle[1] = e.target.value;
+            }
+            renderPreview();
+        });
+        gradientAngle.addEventListener('change', (e) => {
+            backgroundImage = null;
+            if (typeof backgroundStyle === 'string') {
+                backgroundStyle = [gradientBg1.value, gradientBg2.value, parseInt(e.target.value)];
+            } else {
+                backgroundStyle[2] = parseInt(e.target.value);
+            }
+            renderPreview();
+        });
+
+        function renderPreview() {
+            quoteRenderer(preview, ctx);
+        }
+
+        function quoteRenderer(_canvas, _ctx) {
+            // Canvas dimensions
+            const w = _canvas.width;
+            const h = _canvas.height;
+
+            // Clear the given canvas
+            _ctx.clearRect(0, 0, w, h);
+
+            // === BACKGROUND LAYER ===
+            if (backgroundImage) {
+                // Scale and center the background image
+                const scale = Math.max(
+                    w / backgroundImage.width,
+                    h / backgroundImage.height
+                );
+
+                const scaledWidth = backgroundImage.width * scale;
+                const scaledHeight = backgroundImage.height * scale;
+
+                const offsetX = (w - scaledWidth) / 2;
+                const offsetY = (h - scaledHeight) / 2;
+
+                _ctx.drawImage(backgroundImage, offsetX, offsetY, scaledWidth, scaledHeight);
+            } else {
+                // Draw background color or gradient
+                if (typeof backgroundStyle !== 'string') {
+                    const angle = parseFloat(backgroundStyle[2] || 45);
+                    const { x0, y0, x1, y1 } = gradientEndpointsForAngle(angle, w, h);
+
+                    const gradient = _ctx.createLinearGradient(x0, y0, x1, y1);
+                    gradient.addColorStop(0, backgroundStyle[0]);
+                    gradient.addColorStop(.5, mixColors(backgroundStyle[0], backgroundStyle[1], .5));
+                    gradient.addColorStop(1, backgroundStyle[1]);
+                    _ctx.fillStyle = gradient;
+                } else {
+                    _ctx.fillStyle = backgroundStyle;
+                }
+
+                _ctx.fillRect(0, 0, w, h);
+            }
+
+            // === OVERLAY LAYER ===
+            _ctx.fillStyle = 'rgba(0,0,0,0.28)';
+            _ctx.fillRect(0, 0, w, h);
+
+            // === ACCENT BAR ===
+            _ctx.fillStyle = accentEl.value;
+            _ctx.beginPath();
+            _ctx.roundRect(w * 0.06, h * 0.06, w * 0.88, h * 0.015, w * 0.88);
+            _ctx.fill();
+
+            // === TEXT SETUP ===
+            const fontFamily = fontEl.value.split(' ').slice(1).join(' ');
+            const fontSize = parseInt(sizeEl.value, 10) * (_canvas.width / 1080);
+
+            _ctx.font = `${textStyleEl.value} ${textWeightEl.value} ${fontSize}px ${fontFamily}`;
+            _ctx.fillStyle = textColorEl.value;
+            _ctx.textAlign = 'center';
+            _ctx.shadowColor = 'rgba(0,0,0,0.45)';
+            _ctx.shadowBlur = 6;
+
+            // === QUOTE & AUTHOR ===
+            const quote = quoteEl.value.trim();
+            const author = authorEl.value.trim();
+
+            // Text wrapping
+            const lineHeight = fontSize * 1.1;
+            const padding = w * 0.12;
+            const maxWidth = w - padding * 2;
+
+            const words = quote.split(' ');
+            let lines = [''];
+
+            for (const word of words) {
+                const testLine = lines.at(-1) + (lines.at(-1) ? ' ' : '') + word;
+
+                if (_ctx.measureText(testLine).width > maxWidth) {
+                    lines.push(word);
+                } else {
+                    lines[lines.length - 1] = testLine;
+                }
+            }
+
+            // Calculate vertical position for centering
+            const totalHeight = (lines.length + (author ? 1 : 0)) * lineHeight;
+            let y = ((h - totalHeight) / 1.8) + ((sizeEl.value / 84) * 40);
+
+            // Draw each line of the quote
+            lines.forEach(line => {
+                _ctx.fillText(line, w / 2, y);
+                y += lineHeight;
+            });
+
+            // Draw author name (smaller font)
+            if (author) {
+                _ctx.font = `${fontSize * 0.6}px ${fontFamily}`;
+                // _ctx.fillText(author, w / 2, y + lineHeight * 0.25);
+                _ctx.fillText(author, w / 2, h - (lineHeight * 4) * 0.25);
+            }
+        }
+
+        renderBtn.addEventListener('click', renderPreview);
+        [quoteEl, authorEl, fontEl, sizeEl, textColorEl, accentEl, textStyleEl, textWeightEl].forEach(el => el.addEventListener('input', renderPreview));
+        renderPreview();
+
+        downloadBtn.addEventListener('click', () => {
+            const c = document.createElement('canvas'); c.width = 1080; c.height = parseInt(sizeSelect.value, 10);
+            const g = c.getContext('2d');
+
+            const scale = window.devicePixelRatio || 1;
+            c.width = c.width * scale;
+            c.height = c.height * scale;
+            g.scale(scale, scale);
+
+            quoteRenderer(c, g);
+
+            // Export as PNG file
+            c.toBlob(blob => {
+                const url = URL.createObjectURL(blob);
+                const aTag = document.createElement('a');
+                aTag.href = url;
+                aTag.download = 'quote-' + Date.now() + '.png';
+                aTag.click();
+                URL.revokeObjectURL(url);
+            });
+
+        });
+        downloadVideoBtn.addEventListener('click', () => {
+            if (animationRunning || typeof backgroundStyle === 'string') return;
+            animationRunning = true;
+
+            const c = document.createElement('canvas'); c.width = 1080; c.height = parseInt(sizeSelect.value, 10);
+            const g = c.getContext('2d');
+
+            const stream = c.captureStream(30);
+            const chunks = [];
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 5_000_000 });
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'quote-video.webm';
+                a.click();
+                URL.revokeObjectURL(url);
+                animationRunning = false;
+            };
+            recorder.start();
+
+            const duration = 6; // seconds
+            const totalFrames = duration * 30;
+            let frame = 0;
+
+            function animate() {
+                const progress = frame / totalFrames;
+                backgroundStyle[2] = (progress * 180) % 360;
+                quoteRenderer(c, g);
+                frame++;
+                if (frame < totalFrames) requestAnimationFrame(animate);
+                else recorder.stop();
+            }
+
+            animate();
+        })
+        copyCaptionBtn.addEventListener('click', () => {
+            const caption = `${quoteEl.value.trim()}\n${authorEl.value.trim()}\n\n#quote #motivation #lifequotes #inspiration #mindset #positivity`;
+
+            navigator.clipboard.writeText(caption).then(() => {
+                copyCaptionBtn.textContent = 'Copied!';
+                setTimeout(() => copyCaptionBtn.textContent = 'Copy Caption', 1500);
+            });
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Classic Chess</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="js/state.js"></script>
+    <script src="js/constants.js"></script>
+    <script src="js/utils.js"></script>
+    <script src="js/movement.js"></script>
+    <script src="js/renderer.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="board"></div>
+        <div class="pieces"></div>
+        <div class="moves"></div>
+        <div class="interactors"></div>
+    </div>
+    <div class="others">
+        <div class="scoreboard">
+            <div id="white-score" class="white-score">0</div>
+            <div id="black-score" class="black-score">0</div>
+        </div>
+        <div class="captured-pieces">
+            <div id="white-pieces" class="white-pieces"></div>
+            <div id="black-pieces" class="black-pieces"></div>
+        </div>
+        <!-- Game Result Popup -->
+        <div id="result-popup" class="result-popup hidden">
+            <div class="popup-overlay"></div>
+            <div class="popup-card">
+                <div class="popup-header">
+                    <h1 id="popup-title">White Wins!</h1>
+                    <p id="popup-subtitle">Checkmate</p>
+                </div>
+                <div class="popup-actions">
+                    <button id="rematch-btn" class="btn">Rematch</button>
+                    <button id="next-btn" class="btn d-none">Next Game</button>
+                    <button id="close-btn" class="btn btn-secondary">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- <script src="script.js"></script> -->
+    <script src="js/main.js"></script>
+</body>
+
+</html>

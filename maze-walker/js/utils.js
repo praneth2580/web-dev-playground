@@ -1,0 +1,1 @@
+const limiter = (value, maxSize, minSize = 0) => Math.max(minSize, Math.min(value, maxSize));

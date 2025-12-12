@@ -1,0 +1,112 @@
+type,id,label,other
+person,alice.wu,Alice Wu,
+person,bob.ng,Bob Ng,
+person,carla-fern,Carla Fernandez,
+person,dmitri,Dmitri Ivanov,
+person,eve.ross,Eve Ross,
+org,acme-inc,ACME Inc.,
+org,northwind,Northwind Logistics,
+org,globex,Globex Labs,
+org,cyber-owl,Cyber Owl Security,
+domain,acme.com,acme.com,
+domain,portal.acme.com,portal.acme.com,
+domain,api.acme.com,api.acme.com,
+domain,globex.dev,globex.dev,
+domain,northwind.io,northwind.io,
+ip,93.184.216.34,93.184.216.34,
+ip,203.0.113.10,203.0.113.10,
+ip,2001:db8::1,2001:db8::1,
+asn,asn64500,AS64500 ExampleNet,
+asn,asn64501,AS64501 DemoISP,
+email,alice@acme.com,alice@acme.com,
+email,bob@globex.dev,bob@globex.dev,
+email,careers@acme.com,careers@acme.com,
+phone,+1-202-555-0101,+1-202-555-0101,
+phone,+1-202-555-0142,+1-202-555-0142,
+social,gh:alicewu,github.com/alicewu,
+social,li:alicewu,linkedin.com/in/alicewu,
+social,tw:bobng,twitter.com/bobng,
+repo,repo-acme-web,acme/web-portal,
+repo,repo-acme-api,acme/api-service,
+repo,repo-globex-ml,globex/ml-pipeline,
+project,proj-orion,Project Orion,
+project,proj-atlas,Project Atlas,
+device,srv-acme-01,srv-acme-01,
+device,srv-acme-02,srv-acme-02,
+device,laptop-alice,laptop-alice,
+device,fw-northwind,fw-northwind,
+location,hq-nyc,HQ - New York,
+location,dc-va1,Datacenter VA-1,
+location,lab-sf,R&D Lab - SF,
+vuln,cve-2023-12345,CVE-2023-12345,
+vuln,cve-2024-42424,CVE-2024-42424,
+package,pkg-log4j,pkg:log4j,
+package,pkg-openssl,pkg:openssl,
+media,news-orion,Press: Orion Launch,
+event,conf-seccon,Talk: SecCon 2025,
+
+link,alice.wu,acme-inc,works_at
+link,bob.ng,globex,works_at
+link,carla-fern,northwind,works_at
+link,dmitri,cyber-owl,works_at
+link,eve.ross,acme-inc,works_at
+link,acme-inc,acme.com,owns_domain
+link,acme-inc,portal.acme.com,owns_domain
+link,acme-inc,api.acme.com,owns_domain
+link,globex,globex.dev,owns_domain
+link,northwind,northwind.io,owns_domain
+link,acme.com,93.184.216.34,resolves_to
+link,portal.acme.com,93.184.216.34,resolves_to
+link,api.acme.com,203.0.113.10,resolves_to
+link,globex.dev,2001:db8::1,resolves_to
+link,northwind.io,203.0.113.10,resolves_to
+link,93.184.216.34,asn64500,announced_by
+link,203.0.113.10,asn64501,announced_by
+link,2001:db8::1,asn64500,announced_by
+link,alice.wu,alice@acme.com,emails
+link,alice.wu,+1-202-555-0101,phones
+link,bob.ng,bob@globex.dev,emails
+link,eve.ross,+1-202-555-0142,phones
+link,alice.wu,gh:alicewu,alias_of
+link,alice.wu,li:alicewu,alias_of
+link,bob.ng,tw:bobng,alias_of
+link,gh:alicewu,repo-acme-web,maintains
+link,gh:alicewu,repo-acme-api,contributes_to
+link,tw:bobng,news-orion,mentions
+link,acme-inc,proj-orion,owns_project
+link,globex,proj-atlas,owns_project
+link,proj-orion,repo-acme-web,uses_repo
+link,proj-orion,repo-acme-api,uses_repo
+link,proj-atlas,repo-globex-ml,uses_repo
+link,srv-acme-01,dc-va1,located_in
+link,srv-acme-02,dc-va1,located_in
+link,fw-northwind,hq-nyc,located_in
+link,laptop-alice,hq-nyc,used_from
+link,portal.acme.com,srv-acme-01,hosts_on
+link,api.acme.com,srv-acme-02,hosts_on
+link,northwind.io,fw-northwind,fronted_by
+link,repo-acme-web,pkg-log4j,depends_on
+link,repo-acme-api,pkg-openssl,depends_on
+link,repo-globex-ml,pkg-openssl,depends_on
+link,pkg-log4j,cve-2023-12345,vulnerable_to
+link,pkg-openssl,cve-2024-42424,vulnerable_to
+link,srv-acme-01,cve-2023-12345,exposed_via
+link,srv-acme-02,cve-2024-42424,exposed_via
+link,alice.wu,proj-orion,manages
+link,eve.ross,proj-orion,contributes_to
+link,bob.ng,proj-atlas,leads
+link,carla-fern,proj-atlas,contributes_to
+link,news-orion,proj-orion,about
+link,conf-seccon,cyber-owl,sponsored_by
+link,conf-seccon,dmitri,speaker
+link,acme-inc,hq-nyc,has_office
+link,globex,lab-sf,has_lab
+link,northwind,hq-nyc,warehouse_near
+link,alice.wu,eve.ross,colleague_of
+link,alice.wu,bob.ng,follows
+link,carla-fern,bob.ng,connected_to
+link,dmitri,cyber-owl,member_of
+link,careers@acme.com,acme-inc,mailbox_for
+link,acme-inc,srv-acme-01,owns_asset
+link,acme-inc,srv-acme-02,owns_asset
+link,northwind,fw-northwind,owns_asset

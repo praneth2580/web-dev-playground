@@ -1,0 +1,200 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Quote Writer — Animated Instagram Post</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        input[type="color"] {
+            -webkit-appearance: none;
+            border: none;
+            width: 100%;
+            height: 35px;
+        }
+
+        input[type="color"]::-webkit-color-swatch-wrapper {
+            padding: 0;
+        }
+
+        input[type="color"]::-webkit-color-swatch {
+            border: none;
+        }
+    </style>
+</head>
+
+<body class="min-h-screen bg-gradient-to-b from-slate-900 to-slate-950 text-slate-100 font-inter">
+    <div class="max-w-6xl mx-auto grid md:grid-cols-2 gap-6 p-6">
+        <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6">
+            <h1 class="text-xl font-semibold mb-2">🎬 Animated Quote Creator</h1>
+            <p class="text-slate-400 text-sm mb-4">Create animated quote videos for Instagram — no backend needed!</p>
+
+            <textarea id="quote"
+                class="w-full p-3 rounded-lg bg-slate-900/60 border border-slate-700 text-sm mb-3 h-24">Believe you can and you're halfway there.</textarea>
+            <input id="author" class="w-full p-3 rounded-lg bg-slate-900/60 border border-slate-700 text-sm mb-4"
+                type="text" placeholder="Author" value="Theodore Roosevelt" />
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="text-slate-400 text-sm">Text color</label>
+                    <input id="textColor" type="color" value="#ffffff" class="w-full h-10" />
+                </div>
+                <div>
+                    <label class="text-slate-400 text-sm">Accent color</label>
+                    <input id="accentColor" type="color" value="#06b6d4" class="w-full h-10" />
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-4">
+                <div>
+                    <label class="text-slate-400 text-sm">Gradient color 1</label>
+                    <input id="gradient1" type="color" value="#7c3aed" class="w-full h-10" />
+                </div>
+                <div>
+                    <label class="text-slate-400 text-sm">Gradient color 2</label>
+                    <input id="gradient2" type="color" value="#06b6d4" class="w-full h-10" />
+                </div>
+            </div>
+
+            <div class="flex gap-3 mb-4">
+                <button id="renderBtn"
+                    class="flex-1 bg-cyan-500 hover:bg-cyan-400 text-slate-900 font-semibold py-2 rounded-lg">Render
+                    Preview</button>
+                <button id="downloadVideo"
+                    class="flex-1 bg-emerald-400 hover:bg-emerald-300 text-slate-900 font-semibold py-2 rounded-lg">Export
+                    Video</button>
+            </div>
+
+            <p class="text-xs text-slate-400">Video exports as .webm (Instagram accepts this after converting to .mp4)
+            </p>
+        </div>
+
+        <div class="bg-slate-800/50 backdrop-blur rounded-2xl p-6 flex flex-col items-center justify-center">
+            <p class="text-slate-400 text-sm mb-2">Preview</p>
+            <canvas id="preview" width="540" height="540" class="rounded-xl shadow-lg"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const quoteEl = document.getElementById('quote');
+        const authorEl = document.getElementById('author');
+        const textColorEl = document.getElementById('textColor');
+        const accentColorEl = document.getElementById('accentColor');
+        const gradient1El = document.getElementById('gradient1');
+        const gradient2El = document.getElementById('gradient2');
+        const preview = document.getElementById('preview');
+        const ctx = preview.getContext('2d');
+        const renderBtn = document.getElementById('renderBtn');
+        const downloadVideo = document.getElementById('downloadVideo');
+
+        let animationRunning = false;
+
+        // Helper to blend colors
+        function mixColors(c1, c2, w = 0.5) {
+            const hex = x => x.toString(16).padStart(2, '0');
+            const a = c1.match(/\w\w/g).map(x => parseInt(x, 16));
+            const b = c2.match(/\w\w/g).map(x => parseInt(x, 16));
+            const c = a.map((v, i) => Math.round(v + (b[i] - v) * w));
+            return `#${hex(c[0])}${hex(c[1])}${hex(c[2])}`;
+        }
+
+        function drawFrame(progress) {
+            const w = preview.width;
+            const h = preview.height;
+
+            ctx.clearRect(0, 0, w, h);
+
+            // Animated gradient
+            const angle = (progress * 180) % 360;
+            const rad = angle * Math.PI / 180;
+            const x0 = w / 2 + Math.cos(rad) * w / 2;
+            const y0 = h / 2 + Math.sin(rad) * h / 2;
+            const x1 = w / 2 - Math.cos(rad) * w / 2;
+            const y1 = h / 2 - Math.sin(rad) * h / 2;
+
+            const g = ctx.createLinearGradient(x0, y0, x1, y1);
+            g.addColorStop(0, gradient1El.value);
+            g.addColorStop(0.5, mixColors(gradient1El.value.replace('#', ''), gradient2El.value.replace('#', ''), 0.5));
+            g.addColorStop(1, gradient2El.value);
+            ctx.fillStyle = g;
+            ctx.fillRect(0, 0, w, h);
+
+            // Accent bar
+            ctx.fillStyle = accentColorEl.value;
+            ctx.fillRect(w * 0.1, h * 0.08, w * 0.8, 6);
+
+            // Fade-in text
+            ctx.globalAlpha = Math.min(1, progress * 2);
+            ctx.fillStyle = textColorEl.value;
+            ctx.textAlign = 'center';
+            ctx.font = `bold 26px Poppins, sans-serif`;
+            const lines = wrapText(ctx, quoteEl.value, w * 0.8);
+            const startY = h / 2 - (lines.length * 28) / 2;
+            lines.forEach((line, i) => ctx.fillText(line, w / 2, startY + i * 32));
+
+            ctx.font = 'italic 20px Playfair Display, serif';
+            ctx.fillText(`— ${authorEl.value}`, w / 2, h - 60);
+
+            ctx.globalAlpha = 1;
+        }
+
+        function wrapText(ctx, text, maxWidth) {
+            const words = text.split(' ');
+            const lines = [];
+            let current = '';
+            for (let w of words) {
+                const test = current + w + ' ';
+                if (ctx.measureText(test).width > maxWidth && current) {
+                    lines.push(current.trim());
+                    current = w + ' ';
+                } else {
+                    current = test;
+                }
+            }
+            if (current) lines.push(current.trim());
+            return lines;
+        }
+
+        // Render static preview
+        renderBtn.addEventListener('click', () => drawFrame(1));
+
+        // Export animation as video
+        downloadVideo.addEventListener('click', async () => {
+            if (animationRunning) return;
+            animationRunning = true;
+
+            const stream = preview.captureStream(30);
+            const chunks = [];
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 5_000_000 });
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'quote-video.webm';
+                a.click();
+                URL.revokeObjectURL(url);
+                animationRunning = false;
+            };
+            recorder.start();
+
+            const duration = 6; // seconds
+            const totalFrames = duration * 30;
+            let frame = 0;
+
+            function animate() {
+                const progress = frame / totalFrames;
+                drawFrame(progress);
+                frame++;
+                if (frame < totalFrames) requestAnimationFrame(animate);
+                else recorder.stop();
+            }
+
+            animate();
+        });
+    </script>
+</body>
+
+</html>

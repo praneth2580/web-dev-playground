@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Relations Graph - 3D Visualizer</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./src/styles.css">
+    <!-- 3d-force-graph via CDN -->
+    <script src="https://unpkg.com/3d-force-graph" defer></script>
+    <!-- three.js is a peer dep; 3d-force-graph bundles it if missing, but include for stability -->
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js" defer></script>
+    <!-- optional controls helpers -->
+    <script src="https://unpkg.com/three@0.160.0/examples/js/controls/OrbitControls.js" defer></script>
+    <script src="./src/app.js" type="module" defer></script>
+</head>
+<body>
+    <div class="layout">
+        <aside class="sidebar">
+            <h1>Relations Graph</h1>
+            <div class="tab-bar">
+                <button id="tab-btn-forms" class="tab-btn tab-btn-active">Forms</button>
+                <button id="tab-btn-database" class="tab-btn">Database</button>
+            </div>
+            <div id="tab-forms">
+                <section class="panel">
+                    <h2>Add Entity</h2>
+                    <form id="node-form" class="form">
+                        <label>
+                            ID
+                            <input type="text" id="node-id" placeholder="unique-id" required>
+                        </label>
+                        <label>
+                            Label
+                            <input type="text" id="node-label" placeholder="Alice / server-01" required>
+                        </label>
+                        <label>
+                            Type
+                            <input type="text" id="node-type" placeholder="person / computer / org">
+                        </label>
+                        <button type="submit">Add / Update Entity</button>
+                    </form>
+                </section>
+
+                <section class="panel">
+                    <h2>Add Relation</h2>
+                    <form id="link-form" class="form">
+                        <label>
+                            Source ID
+                            <input type="text" id="link-source" placeholder="alice" required>
+                        </label>
+                        <label>
+                            Target ID
+                            <input type="text" id="link-target" placeholder="server-01" required>
+                        </label>
+                        <label>
+                            Relation
+                            <input type="text" id="link-name" placeholder="owns / connects_to">
+                        </label>
+                        <button type="submit">Add Relation</button>
+                    </form>
+                </section>
+
+                <section class="panel">
+                    <h2>Data</h2>
+                    <div class="buttons data-buttons">
+                        <button id="btn-sample">Load Sample</button>
+                        <button id="btn-export">Export JSON</button>
+                    </div>
+                    <div class="buttons data-buttons">
+                        <button id="btn-download-sample-json">Download Sample JSON</button>
+                        <button id="btn-download-sample-csv">Download Sample CSV</button>
+                    </div>
+                    <div class="buttons data-buttons">
+                        <button id="btn-import-json">Import JSON</button>
+                        <button id="btn-import-csv">Import CSV</button>
+                    </div>
+                    <div class="buttons">
+                        <button id="btn-clear">Clear All</button>
+                    </div>
+                    <input type="file" id="file-input" accept="application/json,.csv" hidden>
+                    <details>
+                        <summary>Raw JSON</summary>
+                        <textarea id="json-area" spellcheck="false"></textarea>
+                        <div class="buttons">
+                            <button id="btn-apply-json">Apply JSON</button>
+                        </div>
+                    </details>
+                </section>
+
+                <section class="panel">
+                    <h2>View</h2>
+                    <div class="controls">
+                        <label>
+                            Link Distance
+                            <input type="range" id="link-distance" min="10" max="300" value="100">
+                        </label>
+                        <label class="row">
+                            <input type="checkbox" id="toggle-physics" checked>
+                            Enable Physics
+                        </label>
+                        <button id="btn-fit">Zoom to Fit</button>
+                    </div>
+                </section>
+            </div>
+            <div id="tab-database" style="display:none"></div>
+        </aside>
+        <div class="sidebar-resizer" id="sidebar-resizer"></div>
+        <main class="canvas-wrap">
+            <div id="graph"></div>
+        </main>
+    </div>
+</body>
+</html>
+
+

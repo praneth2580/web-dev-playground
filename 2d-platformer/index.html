@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="./GameEntites/Player.js"></script>
+    <script src="./GameEntites/Platform.js"></script>
+    <script src="./GameEntites/Building.js"></script>
+    <title>2D Platform</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            padding: 3.24px;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="main-game-canvas"></canvas>
+    <script>
+
+        // CANVAS CONFIGURATIONS
+        const canvas = document.getElementById("main-game-canvas");
+        const ctx = canvas.getContext("2d");
+        let { innerWidth, innerHeight } = window;
+        canvas.width = innerWidth - 10;
+        canvas.height = innerHeight - 10;
+        let { width, height } = canvas;
+
+        window.addEventListener("resize", () => {
+            innerWidth = window.innerWidth;
+            innerHeight = window.innerHeight;
+            canvas.width = innerWidth - 10;
+            canvas.height = innerHeight - 10;
+            width = canvas.width;
+            height = canvas.height;
+
+            render();
+        })
+
+        const keys = {
+            jump: (key) => key === 'Space',
+            left: (key) => key === 'KeyA',
+            right: (key) => key === 'KeyD',
+        }
+        // KeyBoard Handlers
+        window.addEventListener('keydown', (e) => {
+            if (keys.jump(e.code)) gameObjects.player.jump();
+            if (keys.right(e.code)) {
+                gameObjects.building.moveCamera(1, 0);
+                gameObjects.player.addVelocityX(10);
+            }
+            if (keys.left(e.code)) {
+                gameObjects.building.moveCamera(-1, 0);
+                gameObjects.player.addVelocityX(-10);
+            }
+            if (e.code === "NumpadAdd") gameObjects.building.setZoom(gameObjects.building.camera.zoom + 1)
+        })
+
+        const gameObjects = {
+            player: new Player(),
+            building: new Building()
+        };      
+
+        function render() {
+            try {
+
+                ctx.clearRect(0, 0, width, height);
+                ctx.fillStyle = "#f4cef5";
+                ctx.fillRect(0, 0, width, height);
+
+                // Recalcualte Entites
+                gameObjects.player.update({ width, height });
+
+                // Draw everything
+                gameObjects.building.draw(ctx)
+                gameObjects.player.draw(ctx);
+
+                requestAnimationFrame(render);
+
+            } catch (error) {
+                alert("Error in Renderer")
+                console.error(error);
+            }
+        }
+        render();
+
+    </script>
+</body>
+
+</html>

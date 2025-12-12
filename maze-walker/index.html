@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="./js/algos/no_backtrack.js"></script>
+    <script src="./js/constants.js"></script>
+    <script src="./js/state.js"></script>
+    <script src="./js/renderer.js"></script>
+    <script src="./js/maze-generator.js"></script>
+    <link rel="stylesheet" href="./style.css">
+</head>
+
+<body>
+    <div id="algo-nav" class="left-nav"></div>
+    <div class="maze-root-container">
+        <div id="maze-container" class="maze-container"></div>
+        <div class="movement-container" id="movement-container"></div>
+    </div>
+    <div id="reslt-nav" class="right-nav">
+        <table>
+            <tr>
+                <th colspan="4">Algorithm Results</th>
+            </tr>
+            <tr>
+                <th>Total Time</th>
+                <th>No. of Turns</th>
+                <th>No. of BackTracks</th>
+                <th>Score</th>
+            </tr>
+            <tbody id="reslt-table">
+                <tr>
+                    <td id="total-time" class="center">--</td>
+                    <td id="no-of-turns" class="center">--</td>
+                    <td id="no-of-backtracks" class="center">--</td>
+                    <td id="score" class="center">-/10</td>
+                </tr>
+            </tbody>
+        </table>
+        <table>
+            <tr>
+                <th colspan="4">Move History</th>
+            </tr>
+            <tr>
+                <th>#</th>
+                <th>Move</th>
+                <th>Type</th>
+                <th>Time</th>
+            </tr>
+            <tbody id="history-table"></tbody>
+        </table>
+    </div>
+    <script src="./js/main.js"></script>
+</body>
+
+</html>

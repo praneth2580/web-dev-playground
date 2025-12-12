@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NSE Quick Profit Bot (Free)</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #0f172a;
+            color: #f8fafc;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        h1 {
+            color: #38bdf8;
+            margin-bottom: 20px;
+        }
+
+        select,
+        button {
+            padding: 10px;
+            font-size: 16px;
+            border-radius: 6px;
+            border: none;
+            margin: 5px;
+        }
+
+        button {
+            background: #38bdf8;
+            color: black;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background: #0ea5e9;
+        }
+
+        #result {
+            margin-top: 30px;
+            padding: 20px;
+            background: #1e293b;
+            border-radius: 8px;
+            width: 90%;
+            max-width: 500px;
+        }
+
+        .buy {
+            color: #22c55e;
+            font-weight: bold;
+        }
+
+        .sell {
+            color: #ef4444;
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>💹 NSE Quick Profit Bot</h1>
+    <label for="stock">Select Stock:</label>
+    <select id="stock">
+        <option value="RELIANCE.NS">Reliance Industries</option>
+        <option value="TCS.NS">Tata Consultancy Services</option>
+        <option value="INFY.NS">Infosys</option>
+        <option value="HDFCBANK.NS">HDFC Bank</option>
+        <option value="ICICIBANK.NS">ICICI Bank</option>
+        <option value="ITC.NS">ITC Limited</option>
+        <option value="SBIN.NS">State Bank of India</option>
+        <option value="BHARTIARTL.NS">Bharti Airtel</option>
+        <option value="HINDUNILVR.NS">Hindustan Unilever</option>
+        <option value="BAJFINANCE.NS">Bajaj Finance</option>
+    </select>
+    <button id="checkBtn">Check Trend</button>
+
+    <div id="result">Select a stock and click “Check Trend”.</div>
+
+    <script>
+        async function fetchYahooStock(symbol) {
+            const url = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}?interval=5m&range=1d`;
+            const res = await fetch(url);
+            const data = await res.json();
+            const quotes = data.chart?.result?.[0];
+            if (!quotes) throw new Error("No data found.");
+            const prices = quotes.indicators.quote[0].close.filter(v => v);
+            return prices;
+        }
+
+        async function fetchStock(symbol) {
+            const proxyUrl = "https://proxy.cors.sh/";
+            const token = "temp_e26ef25f767d49d904428b2dc29bd726";
+            const yahooUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${symbol}.NS?interval=5m&range=1d`;
+
+            try {
+                const response = await fetch(proxyUrl + encodeURIComponent(yahooUrl), {
+                    headers: {
+                        'x-cors-api-key': 'temp_e26ef25f767d49d904428b2dc29bd726'
+                    }
+                });
+                const data = await response.json();
+
+                console.log("Fetched Data:", data);
+
+                if (!data.chart || data.chart.error) {
+                    throw new Error("Invalid response or symbol not found.");
+                }
+
+                const meta = data.chart.result[0].meta;
+                const prices = data.chart.result[0].indicators.quote[0];
+                const lastPrice = prices.close[prices.close.length - 1];
+                const previousClose = meta.previousClose;
+
+                const change = ((lastPrice - previousClose) / previousClose * 100).toFixed(2);
+                document.getElementById("result").innerHTML = `
+                    <h3>${meta.symbol}</h3>
+                    <p>Last Price: ₹${lastPrice.toFixed(2)}</p>
+                    <p>Previous Close: ₹${previousClose.toFixed(2)}</p>
+                    <p>Change: ${change}%</p>
+                    <p>Suggestion: ${change > 0 ? "📈 Looks bullish — consider buying dips!" : "📉 Weak momentum — wait or short-term sell."}</p>
+                `;
+            } catch (err) {
+                document.getElementById("result").innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+                console.error(err);
+            }
+        }
+
+        function analyze(prices) {
+            if (prices.length < 2) return { suggestion: "HOLD", message: "Not enough data" };
+            const last = prices[prices.length - 1];
+            const prev = prices[prices.length - 6] || prices[0];
+            const change = ((last - prev) / prev) * 100;
+            if (change > 1.2) return { suggestion: "BUY", message: `Up ${change.toFixed(2)}% 📈` };
+            if (change < -1.2) return { suggestion: "SELL", message: `Down ${change.toFixed(2)}% 📉` };
+            return { suggestion: "HOLD", message: `Flat (${change.toFixed(2)}%) ⚖️` };
+        }
+
+        document.getElementById("checkBtn").addEventListener("click", async () => {
+            const symbol = document.getElementById("stock").value;
+            const resultDiv = document.getElementById("result");
+            resultDiv.innerHTML = "Fetching...";
+            try {
+                const prices = await fetchStock(symbol);
+                const { suggestion, message } = analyze(prices);
+                resultDiv.innerHTML = `
+          <h2>${symbol}</h2>
+          <p>Last Price: ₹${prices[prices.length - 1].toFixed(2)}</p>
+          <p>${message}</p>
+          <p class="${suggestion === 'BUY' ? 'buy' : suggestion === 'SELL' ? 'sell' : ''}">
+            Recommendation: ${suggestion}
+          </p>
+        `;
+            } catch (err) {
+                resultDiv.innerHTML = "Error fetching data.";
+                console.error(err);
+            }
+        });
+    </script>
+</body>
+
+</html>
