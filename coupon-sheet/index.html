@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coupon Sheet</title>
+    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <link rel="stylesheet" href="style.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="coupon-sheet">
+        <div class="coupon-sheet-preview-container">
+            <canvas id="coupon-sheet-preview"></canvas>
+        </div>
+        <div class="coupon-sheet-form">
+            <h2 class="coupon-sheet-form-title">Add Coupon</h2>
+
+            <!-- Coupon Design -->
+            <div class="input-group">
+                <input type="file" name="coupon-sheet-image" id="coupon-sheet-image">
+                <button id="coupon-sheet-image-btn">Upload Coupon Image</button>
+            </div>
+
+            <!-- Paper Configuration -->
+            <div class="row">
+                <div class="input-group full">
+                    <label for="paper-size">Paper Size</label>
+                    <select name="paper-size" id="paper-size">
+                        <option value="a4">A4 (210x297mm)</option>
+                        <option value="a3">A3 (297x420mm)</option>
+                        <option value="a5">A5 (148x210mm)</option>
+                        <option value="letter">Letter (8.5x11")</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-group full">
+                    <label for="paper-margin">Margin</label>
+                    <select name="paper-margin" id="paper-margin">
+                        <option value="0">None</option>
+                        <option value="2">Small</option>
+                        <option value="5">Medium</option>
+                        <option value="10">Large</option>
+                        <option value="20">Extra Large</option>
+                    </select>
+                </div>
+                <div class="input-group full">
+                    <label for="paper-orientation">Orientation</label>
+                    <select name="paper-orientation" id="paper-orientation">
+                        <option value="portrait">Portrait</option>
+                        <option value="landscape">Landscape</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Data Source Selection -->
+            <div class="row">
+                <div class="input-group full">
+                    <label>Data Method</label>
+                    <select id="coupon-data-method">
+                        <option value="sequential">Sequential Numbers</option>
+                        <option value="csv">Custom List (CSV)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Sequential Inputs -->
+            <div id="method-sequential" class="method-group">
+                <div class="row">
+                    <div class="input-group full">
+                        <label for="coupon-serial-prefix">Prefix</label>
+                        <input type="text" id="coupon-serial-prefix" placeholder="e.g. SUMMER-">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-group full">
+                        <label for="coupon-serial-start">Start #</label>
+                        <input type="number" id="coupon-serial-start" placeholder="1" value="1">
+                    </div>
+                    <div class="input-group full">
+                        <label for="coupon-serial-end">End #</label>
+                        <input type="number" id="coupon-serial-end" placeholder="100">
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="input-group full">
+                        <label for="coupon-serial-suffix">Suffix</label>
+                        <input type="text" id="coupon-serial-suffix" placeholder="e.g. -2024">
+                    </div>
+                </div>
+            </div>
+
+            <!-- CSV/Custom Inputs -->
+            <div id="method-csv" class="method-group hidden">
+                <div class="input-group full">
+                    <label for="coupon-csv-data">Paste Codes (One per line)</label>
+                    <textarea id="coupon-csv-data" rows="6" placeholder="CODE1&#10;CODE2&#10;CODE3"></textarea>
+                </div>
+            </div>
+
+            <!-- Coupon Grid -->
+            <div class="row">
+                <div class="input-group full">
+                    <label for="coupon-grid-row">Rows</label>
+                    <input type="number" name="coupon-grid-row" id="coupon-grid-row" placeholder="3" value="3">
+                </div>
+                <div class="input-group full">
+                    <label for="coupon-grid-column">Columns</label>
+                    <input type="number" name="coupon-grid-column" id="coupon-grid-column" placeholder="2" value="2">
+                </div>
+            </div>
+
+            <!-- Coupon Serial Placement -->
+            <div class="row">
+                <div class="input-group full">
+                    <label for="coupon-serial-position-x">X</label>
+                    <input type="number" name="coupon-serial-position-x" id="coupon-serial-position-x" placeholder="0"
+                        value="0">
+                </div>
+                <div class="input-group full">
+                    <label for="coupon-serial-position-y">Y</label>
+                    <input type="number" name="coupon-serial-position-y" id="coupon-serial-position-y" placeholder="0"
+                        value="0">
+                </div>
+            </div>
+
+            <!-- Font Options -->
+            <div class="row">
+                <div class="input-group full">
+                    <label for="coupon-font-family">Font Family</label>
+                    <select name="coupon-font-family" id="coupon-font-family">
+                        <option value="Arial">Arial</option>
+                        <option value="Outfit">Outfit</option>
+                        <option value="Verdana">Verdana</option>
+                        <option value="Helvetica">Helvetica</option>
+                        <option value="Tahoma">Tahoma</option>
+                        <option value="Times New Roman">Times New Roman</option>
+                        <option value="Georgia">Georgia</option>
+                        <option value="Courier New">Courier New</option>
+                        <option value="Roboto">Roboto</option>
+                        <option value="Open Sans">Open Sans</option>
+                        <option value="Lato">Lato</option>
+                        <option value="Montserrat">Montserrat</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="input-group full">
+                    <label for="coupon-font-size">Font Size</label>
+                    <input type="number" name="coupon-font-size" id="coupon-font-size" placeholder="12" value="12">
+                </div>
+                <div class="input-group full">
+                    <label for="coupon-font-weight">Font Weight</label>
+                    <select name="coupon-font-weight" id="coupon-font-weight">
+                        <option value="normal">Normal</option>
+                        <option value="bold">Bold</option>
+                        <option value="bolder">Bolder</option>
+                        <option value="lighter">Lighter</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Color Options -->
+            <div class="row">
+                <div class="input-group full">
+                    <label for="coupon-text-color">Tx Color</label>
+                    <input type="color" name="coupon-text-color" id="coupon-text-color" value="#000000">
+                </div>
+                <div class="input-group full">
+                    <label for="coupon-bg-color">Bg Color</label>
+                    <div style="display: flex; align-items: center; gap: 0.5rem;">
+                        <input type="color" name="coupon-bg-color" id="coupon-bg-color" value="#ffffff"
+                            style="flex-grow: 1; width: 5rem;">
+                        <label for="coupon-bg-transparent"
+                            style="font-size: 0.8rem; cursor: pointer; white-space: nowrap;">
+                            <input type="checkbox" name="coupon-bg-transparent" id="coupon-bg-transparent"> Transparent
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+
+            <!-- Export Options -->
+            <div class="row">
+                <div class="input-group full">
+                    <label for="pdf-quality">PDF Quality</label>
+                    <select id="pdf-quality">
+                        <option value="standard">Standard (Efficient Size)</option>
+                        <option value="high">Max Quality (Large File)</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Download Links -->
+            <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                <button id="download-btn" class="download-btn" style="flex: 1;">Images (zip)</button>
+                <button id="download-pdf-btn" class="download-btn"
+                    style="flex: 1; background-color: #ef4444; color: white;">PDF ⤓</button>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="script.js"></script>
+</body>
+
+</html>

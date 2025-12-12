@@ -1,0 +1,260 @@
+:root {
+    --bg-color: #0f172a;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --coupon-bg: #1e293b;
+    --accent: #fcd34d;
+    --accent-hover: #fbbf24;
+    --border-dashed: 2px dashed #475569;
+    --input-bg: rgba(30, 41, 59, 0.5);
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: 'Outfit', sans-serif;
+    min-height: 100vh;
+    padding: 2rem;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.coupon-sheet {
+    width: 100%;
+    max-width: 1200px;
+    display: flex;
+    flex-direction: row;
+    gap: 3rem;
+    background: #1e293b;
+    padding: 2rem;
+    border-radius: 16px;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Left Side: Preview */
+.coupon-sheet-preview-container {
+    flex: 2;
+    background-color: #0f172a;
+    border-radius: 12px;
+    border: var(--border-dashed);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    position: relative;
+    overflow: hidden;
+}
+
+.coupon-sheet-preview-container::after {
+    content: 'Preview Area';
+    position: absolute;
+    color: #334155;
+    font-weight: 700;
+    font-size: 2rem;
+    z-index: 0;
+    pointer-events: none;
+}
+
+#coupon-sheet-preview {
+    max-width: 100%;
+    max-height: 100%;
+    z-index: 1;
+}
+
+/* Right Side: Form */
+.coupon-sheet-form {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.coupon-sheet-form-title {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    border-bottom: 2px solid var(--accent);
+    padding-bottom: 0.5rem;
+    margin-bottom: 0.5rem;
+    width: fit-content;
+}
+
+/* File Input & Button */
+input[type="file"] {
+    display: none;
+}
+
+#coupon-sheet-image-btn {
+    width: 100%;
+    height: 120px;
+    border: 2px dashed var(--text-secondary);
+    border-radius: 8px;
+    background-color: var(--input-bg);
+    color: var(--text-primary);
+    font-size: 1rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+#coupon-sheet-image-btn::before {
+    content: '📁';
+    font-size: 2rem;
+}
+
+.download-btn {
+    width: 100%;
+    padding: 1rem;
+    background-color: var(--accent);
+    color: #0f172a;
+    font-size: 1.1rem;
+    font-weight: 700;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    margin-top: 1rem;
+}
+
+.download-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(252, 211, 77, 0.3);
+    background-color: var(--accent-hover);
+}
+
+.download-btn:active {
+    transform: translateY(0);
+}
+
+#coupon-sheet-image-btn:hover {
+    border-color: var(--accent);
+    background-color: rgba(252, 211, 77, 0.05);
+    color: var(--accent);
+}
+
+/* Input Fields */
+.input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    &.full {
+        flex: 1;
+    }
+}
+
+label {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.row {
+    display: flex;
+    gap: 1rem;
+}
+
+input[type="text"],
+input[type="number"],
+input[type="color"],
+select {
+    width: 100%;
+    padding: 0.75rem 1rem;
+    background-color: var(--input-bg);
+    border: 1px solid #475569;
+    border-radius: 8px;
+    color: var(--text-primary);
+    font-family: inherit;
+    font-size: 1rem;
+    transition: all 0.2s ease;
+    min-height: 48px;
+    /* Ensure uniform height */
+    appearance: none;
+    /* Custom arrow */
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23f8fafc' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+    background-repeat: no-repeat;
+    background-position: right 1rem center;
+    background-size: 1em;
+}
+
+input[type="color"] {
+    padding: 0.2rem 0.5rem;
+    cursor: pointer;
+}
+
+select {
+    cursor: pointer;
+}
+
+option {
+    background-color: var(--coupon-bg);
+    color: var(--text-primary);
+    padding: 10px;
+}
+
+input[type="text"]:focus,
+input[type="number"]:focus,
+select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(252, 211, 77, 0.1);
+}
+
+input[type="text"]::placeholder,
+input[type="number"]::placeholder {
+    color: #475569;
+}
+
+/* Responsiveness */
+@media (max-width: 900px) {
+    .coupon-sheet {
+        flex-direction: column;
+    }
+
+    .coupon-sheet-preview-container {
+        min-height: 300px;
+    }
+}
+
+@media (max-width: 600px) {
+    body {
+        padding: 0.5rem;
+    }
+
+    .coupon-sheet {
+        padding: 1rem;
+        gap: 1.5rem;
+        width: 100%;
+    }
+
+    .row {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+
+    .coupon-sheet-form-title {
+        align-self: flex-start;
+        font-size: 1.5rem;
+    }
+}
+
+.download-btn-icon {
+    margin-left: 0.5rem;
+    font-size: 1.2rem;
+    font-weight: bold;
+}

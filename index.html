@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,9 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <link rel="icon" type="image/x-icon" href="./favicon.png">
 </head>
+
 <body>
     <header>
         <div class="header-content">
@@ -26,22 +29,84 @@
     </main>
 
     <footer>
-        <p>Built with <span class="heart">♥</span> by <a href="https://github.com/praneth2580" target="_blank">Praneth</a></p>
+        <p>Built with <span class="heart">♥</span> by <a href="https://github.com/praneth2580"
+                target="_blank">MrSomething</a></p>
     </footer>
 
+    <div id="loader" class="loader">
+        <div class="loader-content">
+            <div id="loader-emoji" class="loader-emoji">🐹</div>
+            <p id="loader-text">Initializing...</p>
+        </div>
+    </div>
+
     <script>
+        const funnyLoadingStates = [
+            { text: "Feeding the hamsters...", emoji: "🐹" },
+            { text: "Aligning divs...", emoji: "📐" },
+            { text: "Compiling spaghetti code...", emoji: "🍝" },
+            { text: "Centering things vertically...", emoji: "↕️" },
+            { text: "Debugging the debugger...", emoji: "🐛" },
+            { text: "Asking Stack Overflow...", emoji: "🤔" },
+            { text: "Generating excuses...", emoji: "📝" },
+            { text: "Downloading more RAM...", emoji: "💾" },
+            { text: "Convincing the server...", emoji: "🥺" },
+            { text: "Pixel peeping...", emoji: "🧐" }
+        ];
+
+        function cycleLoaderText() {
+            const textElement = document.getElementById('loader-text');
+            const emojiElement = document.getElementById('loader-emoji');
+            let index = 0;
+
+            // Set initial state
+            textElement.innerText = funnyLoadingStates[0].text;
+            emojiElement.innerText = funnyLoadingStates[0].emoji;
+
+            return setInterval(() => {
+                index = (index + 1) % funnyLoadingStates.length;
+
+                // Fade out
+                textElement.style.opacity = 0;
+                emojiElement.style.transform = "scale(0.8) rotate(-10deg)";
+                emojiElement.style.opacity = 0;
+
+                setTimeout(() => {
+                    // Update content
+                    textElement.innerText = funnyLoadingStates[index].text;
+                    emojiElement.innerText = funnyLoadingStates[index].emoji;
+
+                    // Fade in
+                    textElement.style.opacity = 1;
+                    emojiElement.style.transform = "scale(1) rotate(0deg)";
+                    emojiElement.style.opacity = 1;
+                }, 200);
+            }, 2000);
+        }
+
         async function loadProjects() {
+            const loader = document.getElementById('loader');
+            const intervalId = cycleLoaderText();
+
+            // Minimum load time for effect
+            const minLoadTime = new Promise(resolve => setTimeout(resolve, 2500));
+
             try {
-                const response = await fetch('projects.json');
+                const [response] = await Promise.all([
+                    fetch('projects.json'),
+                    minLoadTime
+                ]);
+
                 const projects = await response.json();
                 const grid = document.getElementById('project-grid');
 
-                projects.forEach(project => {
+                projects.forEach((project, index) => {
                     const card = document.createElement('a');
                     card.href = project.path;
                     card.className = 'project-card';
-                    
-                    const tagsHtml = project.tags 
+                    card.style.animationDelay = `${index * 100}ms`;
+
+                    const tagsHtml = project.tags
                         ? `<div class="tags">${project.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
                         : '';
 
@@ -55,13 +120,20 @@
                     `;
                     grid.appendChild(card);
                 });
+
+                // Hide loader
+                clearInterval(intervalId);
+                loader.classList.add('hidden');
             } catch (error) {
                 console.error('Error loading projects:', error);
-                document.getElementById('project-grid').innerHTML = '<p class="error">Failed to load projects. Please ensure you are running this on a local server.</p>';
+                clearInterval(intervalId);
+                document.getElementById('loader-text').innerText = "Failed to load projects. (Is the server running?)";
+                document.getElementById('loader-text').style.color = "#ef4444";
             }
         }
 
         loadProjects();
     </script>
 </body>
+
 </html>
