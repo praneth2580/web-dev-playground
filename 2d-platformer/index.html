@@ -4,10 +4,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Platformer Game Engine | Web Dev Playground</title>
+    <meta name="description"
+        content="A lightweight 2D platformer game engine built with HTML5 Canvas and vanilla JavaScript. Features collision detection, physics, and smooth character controls.">
+    <meta name="keywords"
+        content="2d platformer, game engine, javascript game, html5 canvas, game development, collision detection, physics engine">
+    <link rel="canonical" href="https://praneth2580.github.io/web-dev-playground/2d-platformer/">
     <script src="./GameEntites/Player.js"></script>
     <script src="./GameEntites/Platform.js"></script>
     <script src="./GameEntites/Building.js"></script>
-    <title>2D Platform</title>
     <style>
         * {
             margin: 0;
@@ -66,7 +71,7 @@
         const gameObjects = {
             player: new Player(),
             building: new Building()
-        };      
+        };
 
         function render() {
             try {
