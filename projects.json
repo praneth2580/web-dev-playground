@@ -1,0 +1,50 @@
+[
+  {
+    "name": "2D Platformer",
+    "description": "A simple 2D platformer game engine implementation.",
+    "path": "./2d-platformer/index.html",
+    "tags": ["Game Dev", "Canvas"]
+  },
+  {
+    "name": "Classic Chess",
+    "description": "A classic chess game implementation with drag and drop.",
+    "path": "./classic-chess/index.html",
+    "tags": ["Game Dev", "Logic"]
+  },
+  {
+    "name": "Vanilla Sheets",
+    "description": "A spreadsheet application built with vanilla JavaScript.",
+    "path": "./data-sheets/index.html",
+    "tags": ["Tool", "DOM Manipulation"]
+  },
+  {
+    "name": "Maze Walker",
+    "description": "Visualizer for maze generation and solving algorithms.",
+    "path": "./maze-walker/index.html",
+    "tags": ["Algorithms", "Visualization"]
+  },
+  {
+    "name": "Quote Writer",
+    "description": "A tool to create and customize Instagram-style quote posts.",
+    "path": "./quote-writer/index.html",
+    "tags": ["Tool", "Canvas"]
+  },
+  {
+    "name": "Relations Graph",
+    "description": "A 3D force-directed graph visualizer for linked data.",
+    "path": "./relations-graph/index.html",
+    "tags": ["Visualization", "3D", "WebGL"]
+  },
+  {
+    "name": "Stock Scout",
+    "description": "NSE Quick Profit Bot interface.",
+    "path": "./stock-scout/index.html",
+    "tags": ["Tool", "Finance"]
+  },
+  {
+    "name": "Wallpaper Generator",
+    "description": "A random wallpaper generator.",
+    "path": "./wallpaper-generator/v1/index.html",
+    "tags": ["Art", "Generative"]
+  }
+]
