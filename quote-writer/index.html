@@ -4,49 +4,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quote Writer | Instagram Quote Maker</title>
+    <title>Quote Writer | AI Instagram Quote Maker</title>
     <meta name="description"
-        content="Create beautiful, shareable quote images for Instagram and social media. Customize fonts, backgrounds, and styling with this free browser-based tool.">
-    <meta name="keywords"
-        content="quote maker, instagram quotes, image editor, text on image, social media graphics, quote generator">
+        content="Create beautiful, shareable quote images using AI. Generate quotes, backgrounds, and auto-style your designs.">
     <link rel="canonical" href="https://praneth2580.github.io/web-dev-playground/quote-writer/">
     <link rel="icon" type="image/x-icon" href="./favicon.png">
-    
+
     <!-- CSS -->
     <link rel="stylesheet" href="style.css">
-    
+
     <!-- Scripts -->
     <script src="./bundle.js"></script>
+    <script src="./ai-service.js"></script>
 </head>
 
 <body>
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>AI Settings</h2>
+                <button id="close-settings" class="close-btn">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <line x1="18" y1="6" x2="6" y2="18"></line>
+                        <line x1="6" y1="6" x2="18" y2="18"></line>
+                    </svg>
+                </button>
+            </div>
+
+            <p style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 1.5rem;">
+                This app runs entirely in your browser ("client-side"). To use the AI features, you need to provide your
+                own API keys. They are saved to your browser's Local Storage and never sent to our servers.
+                <br><br>
+                <a href="tokens.html" target="_blank" style="color: var(--primary); font-weight: 500;">Don't have keys?
+                    Read the Tutorial →</a>
+            </p>
+
+            <label for="openai-key">OpenAI API Keys (One per line)</label>
+            <textarea id="openai-key" placeholder="sk-key1&#10;sk-key2..."
+                style="min-height: 80px; font-family: monospace; font-size: 0.85rem;"></textarea>
+
+            <label for="hf-key">HuggingFace Tokens (One per line)</label>
+            <textarea id="hf-key" placeholder="hf_token1&#10;hf_token2..."
+                style="min-height: 80px; font-family: monospace; font-size: 0.85rem;"></textarea>
+
+            <button id="save-keys" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem;">Save Keys</button>
+        </div>
+    </div>
+
     <div class="app-container">
         <!-- Header -->
         <header class="app-header">
             <div class="title-group">
-                <h1>Quote Writer</h1>
-                <p>Create aesthetic Instagram posts in seconds.</p>
+                <h1>Quote Writer <span style="font-size: 0.8em; color: var(--accent); vertical-align: super;">AI</span>
+                </h1>
+                <p>Create aesthetic Instagram posts with Magic.</p>
             </div>
-            
-            <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Dark Mode">
-                <!-- Sun Icon -->
-                <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></svg>
-                <!-- Moon Icon (hidden by default logic but we can toggle visibility via CSS or JS) -->
-                <svg id="moon-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></svg>
-            </button>
+
+            <div style="display: flex; gap: 0.5rem;">
+                <button id="theme-toggle" class="theme-toggle-btn" aria-label="Toggle Dark Mode">
+                    <svg id="sun-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                        fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="5"></circle>
+                        <line x1="12" y1="1" x2="12" y2="3"></line>
+                        <line x1="12" y1="21" x2="12" y2="23"></line>
+                        <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+                        <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+                        <line x1="1" y1="12" x2="3" y2="12"></line>
+                        <line x1="21" y1="12" x2="23" y2="12"></line>
+                        <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+                        <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+                    </svg>
+                    <svg id="moon-icon" class="hidden" xmlns="http://www.w3.org/2000/svg" width="20" height="20"
+                        viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+                    </svg>
+                </button>
+                <button id="settings-btn" class="theme-toggle-btn" aria-label="Open Settings">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                        stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path
+                            d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z">
+                        </path>
+                    </svg>
+                </button>
+            </div>
         </header>
 
         <!-- Controls Section -->
         <section id="controls" class="card">
-            
+
+            <!-- Magic Quote Input -->
+            <label>Magic Quote Generator ✨</label>
+            <div class="magic-group">
+                <input id="magic-topic" type="text" class="magic-input"
+                    placeholder="E.g. 'Coffee and coding' or 'Stoic mindset'..." />
+                <button id="magic-btn" class="magic-btn">Generate</button>
+            </div>
+
             <!-- Quote Input -->
             <label for="quote">Your Quote</label>
-            <textarea id="quote" placeholder="Write something inspiring...">Believe you can and you're halfway there.</textarea>
-            
-            <button id="randomBtn" class="btn btn-primary" style="width: 100%; margin-top: 0.75rem; margin-bottom: 1.5rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                Randomize Quote
-            </button>
+            <textarea id="quote"
+                placeholder="Write something inspiring...">Believe you can and you're halfway there.</textarea>
+
+            <div class="grid-2" style="gap: 0.5rem; margin-top: 0.5rem;">
+                <button id="scan-style-btn" class="btn" style="font-size: 0.85rem; background: var(--bg-input);">
+                    🧠 Auto-Style
+                </button>
+                <button id="randomBtn" class="btn" style="font-size: 0.85rem; background: var(--bg-input);">
+                    🎲 Random
+                </button>
+            </div>
 
             <!-- Author Input -->
             <label for="author">Author (optional)</label>
@@ -65,7 +137,7 @@
                 </div>
                 <div>
                     <label for="size">Text Size</label>
-                    <div style="display: flex; align-items: center; height: 42px;"> <!-- Align with select height roughly -->
+                    <div style="display: flex; align-items: center; height: 42px;">
                         <input id="size" type="range" min="28" max="84" value="48" />
                     </div>
                 </div>
@@ -103,14 +175,18 @@
 
             <!-- Backgrounds -->
             <label>Background Style</label>
-            
-            <!-- Presets -->
+
             <div class="bg-options">
                 <button class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" data-bg="#111827">Dark</button>
                 <button class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" data-bg="#f8fafc">Light</button>
-                <button class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" data-bg="135deg,#7c3aed,#06b6d4">Purple</button>
-                <button class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;" data-bg="180deg,#f97316,#f43f5e">Sunset</button>
-                <button id="suggestedBg" class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">✨ Surprise Me</button>
+                <button class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;"
+                    data-bg="135deg,#7c3aed,#06b6d4">Purple</button>
+                <button class="btn" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;"
+                    data-bg="180deg,#f97316,#f43f5e">Sunset</button>
+                <button id="ai-bg-btn" class="btn"
+                    style="padding: 0.4rem 0.8rem; font-size: 0.8rem; background: linear-gradient(135deg, #a78bfa, #f472b6); color: white; border: none;">
+                    🎨 AI Background
+                </button>
             </div>
 
             <!-- Custom Controls -->
@@ -122,11 +198,11 @@
                 <div>
                     <label>Gradient Angle</label>
                     <div style="display: flex; align-items: center; height: 40px;">
-                        <input id="gradientAngle" type="range" min="0" max="360" value="45" step="1"/>
+                        <input id="gradientAngle" type="range" min="0" max="360" value="45" step="1" />
                     </div>
                 </div>
             </div>
-            
+
             <div class="grid-2">
                 <div>
                     <label>Gradient Start</label>
@@ -137,7 +213,7 @@
                     <input type="color" id="gradientBg2" value="#ffffff">
                 </div>
             </div>
-            
+
             <div style="margin-top: 1rem;">
                 <button id="uploadBg" class="btn" style="width: 100%;">Upload Background Image</button>
                 <input id="bgFile" type="file" accept="image/*" class="hidden" />
@@ -155,14 +231,17 @@
             <div class="actions">
                 <button id="renderBtn" class="btn btn-primary">Render Preview</button>
                 <button id="downloadBtn" class="btn">Download PNG</button>
-                <button id="downloadVideoBtn" class="btn">Video</button>
+                <button id="downloadVideoBtn" class="btn"
+                    style="background: linear-gradient(135deg, #fcd34d, #f59e0b); border: none; color: black;">
+                    Smart Video 🎬
+                </button>
                 <button id="copyCaption" class="btn">Copy Caption</button>
             </div>
         </section>
 
         <!-- Preview Section -->
         <section id="preview-section" class="preview-wrapper">
-            <div class="canvas-container">
+            <div class="canvas-container shimmer" id="preview-container">
                 <canvas id="preview" width="540" height="540"></canvas>
             </div>
             <p id="resInfo" style="color: var(--text-muted); font-size: 0.85rem; font-family: monospace;">1080×1080</p>
@@ -171,8 +250,10 @@
 
     <!-- Main Logic -->
     <script>
-        // Existing Quote Writer Logic
-        const qoutesApiUrl = "https://api.adviceslip.com/advice";
+        // Init AI Service
+        const aiService = window.AIService;
+
+        // --- Core Elements ---
         const quoteEl = document.getElementById('quote');
         const authorEl = document.getElementById('author');
         const fontEl = document.getElementById('font');
@@ -181,28 +262,47 @@
         const textStyleEl = document.getElementById('textStyle');
         const textWeightEl = document.getElementById('textWeight');
         const accentEl = document.getElementById('accentColor');
+        const preview = document.getElementById('preview');
+        const ctx = preview.getContext('2d');
+        const previewContainer = document.getElementById('preview-container');
+
+        // --- Buttons ---
         const randomBtn = document.getElementById('randomBtn');
         const renderBtn = document.getElementById('renderBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const downloadVideoBtn = document.getElementById('downloadVideoBtn');
         const copyCaptionBtn = document.getElementById('copyCaption');
-        const preview = document.getElementById('preview');
-        const ctx = preview.getContext('2d');
+
+        // --- Background Controls ---
         const options = document.querySelectorAll('[data-bg]');
         const bgFile = document.getElementById('bgFile');
         const solidBg = document.getElementById('solidBg');
         const gradientBg1 = document.getElementById('gradientBg1');
         const gradientBg2 = document.getElementById('gradientBg2');
         const gradientAngle = document.getElementById('gradientAngle');
-        const suggestedBg = document.getElementById('suggestedBg');
         const uploadBg = document.getElementById('uploadBg');
         const sizeSelect = document.getElementById('sizeSelect');
         const resInfo = document.getElementById('resInfo');
 
+        // --- AI Elements ---
+        const magicBtn = document.getElementById('magic-btn');
+        const magicTopic = document.getElementById('magic-topic');
+        const aiBgBtn = document.getElementById('ai-bg-btn');
+        const scanStyleBtn = document.getElementById('scan-style-btn');
+        const settingsBtn = document.getElementById('settings-btn');
+        const settingsModal = document.getElementById('settings-modal');
+        const closeSettings = document.getElementById('close-settings');
+        const saveKeysBtn = document.getElementById('save-keys');
+        const openaiKeyInput = document.getElementById('openai-key');
+        const hfKeyInput = document.getElementById('hf-key');
+
+        // --- State ---
         let backgroundStyle = '#111827';
         let backgroundImage = null;
         let animationRunning = false;
+        let currentAnimation = 'drift'; // Default animation style
 
+        // --- Setup Canvas ---
         function setPreviewResolution(targetBase) {
             const baseW = 1080;
             let height = parseInt(targetBase, 10);
@@ -213,11 +313,10 @@
             resInfo.textContent = `${width}×${height}`;
             renderPreview();
         }
-
         sizeSelect.addEventListener('change', () => setPreviewResolution(sizeSelect.value));
-        // Initial set
         setPreviewResolution(sizeSelect.value);
 
+        // --- Helper Functions ---
         function extractColors(value) {
             if (value.includes(',')) {
                 const data = value.split(",");
@@ -229,7 +328,7 @@
         function mixColors(color1, color2, weight = 0.5) {
             color1 = color1.replace('#', '');
             color2 = color2.replace('#', '');
-            
+
             const r1 = parseInt(color1.substring(0, 2), 16);
             const g1 = parseInt(color1.substring(2, 4), 16);
             const b1 = parseInt(color1.substring(4, 6), 16);
@@ -260,115 +359,7 @@
             return { x0, y0, x1, y1 };
         }
 
-        function getGradientFromSentiment(quote) {
-            try {
-                // Check if sentiment library exists
-                if (window.sentiment) {
-                    const sentiment = new window.sentiment();
-                    const result = sentiment.analyze(quote);
-                    const score = result.score;
-                    console.log(`Sentiment score: ${score}`);
-                    
-                    const pickGradient = (choices) => {
-                        const gradient = choices[Math.floor(Math.random() * choices.length)];
-                        const angle = [30, 45, 60, 90, 120][Math.floor(Math.random() * 5)];
-                        return [...gradient, angle];
-                    };
-
-                    const gradients = {
-                        veryPositive: [["#ff9a9e", "#fad0c4"], ["#fbc2eb", "#a6c1ee"], ["#fddb92", "#d1fdff"], ["#84fab0", "#8fd3f4"]],
-                        mildlyPositive: [["#a1c4fd", "#c2e9fb"], ["#89f7fe", "#66a6ff"], ["#a8edea", "#fed6e3"], ["#d4fc79", "#96e6a1"]],
-                        neutral: [["#fdfbfb", "#ebedee"], ["#d7d2cc", "#304352"], ["#cfd9df", "#e2ebf0"], ["#bdc3c7", "#2c3e50"]],
-                        mildlyNegative: [["#757f9a", "#d7dde8"], ["#636363", "#a2ab58"], ["#b8c6db", "#f5f7fa"], ["#9796f0", "#fbc7d4"]],
-                        veryNegative: [["#232526", "#414345"], ["#0f2027", "#203a43"], ["#373b44", "#4286f4"], ["#485563", "#29323c"]]
-                    };
-
-                    if (score > 3) return pickGradient(gradients.veryPositive);
-                    if (score > 1) return pickGradient(gradients.mildlyPositive);
-                    if (score < -3) return pickGradient(gradients.veryNegative);
-                    if (score < -1) return pickGradient(gradients.mildlyNegative);
-                    return pickGradient(gradients.neutral);
-                }
-            } catch (e) {
-                console.warn("Sentiment library not loaded", e);
-            }
-            // Fallback gradient if library fails
-            return ["#111827", "#374151", 45];
-        }
-
-        // Event Listeners
-        options.forEach(o => o.addEventListener('click', () => { 
-            backgroundStyle = extractColors(o.dataset.bg); 
-            backgroundImage = null; 
-            renderPreview(); 
-        }));
-
-        suggestedBg.addEventListener('click', () => {
-            backgroundImage = null;
-            backgroundStyle = getGradientFromSentiment(quoteEl.value);
-            renderPreview();
-        });
-
-        randomBtn.addEventListener('click', async () => {
-            try {
-                const response = await fetch(qoutesApiUrl);
-                const data = await response.json();
-                if (data && data.slip) {
-                    quoteEl.value = data.slip.advice;
-                    authorEl.value = "Unknown"; // API doesn't provide author usually
-                    renderPreview();
-                }
-            } catch (err) {
-                console.error("Failed to fetch quote", err);
-            }
-        });
-
-        uploadBg.addEventListener('click', () => bgFile.click());
-        
-        bgFile.addEventListener('change', e => {
-            const f = e.target.files[0]; if (!f) return;
-            const url = URL.createObjectURL(f);
-            const img = new Image();
-            img.onload = () => { backgroundImage = img; URL.revokeObjectURL(url); renderPreview(); }
-            img.src = url;
-        });
-
-        solidBg.addEventListener('input', (e) => { // Changed to input for real-time
-            backgroundImage = null;
-            backgroundStyle = e.target.value;
-            renderPreview();
-        });
-
-        gradientBg1.addEventListener('input', (e) => {
-            backgroundImage = null;
-            if (typeof backgroundStyle === 'string') {
-                backgroundStyle = [e.target.value, gradientBg2.value];
-            } else {
-                backgroundStyle[0] = e.target.value;
-            }
-            renderPreview();
-        });
-
-        gradientBg2.addEventListener('input', (e) => {
-            backgroundImage = null;
-            if (typeof backgroundStyle === 'string') {
-                backgroundStyle = [gradientBg1.value, e.target.value];
-            } else {
-                backgroundStyle[1] = e.target.value;
-            }
-            renderPreview();
-        });
-
-        gradientAngle.addEventListener('input', (e) => {
-            backgroundImage = null;
-            if (typeof backgroundStyle === 'string') {
-                backgroundStyle = [gradientBg1.value, gradientBg2.value, parseInt(e.target.value)];
-            } else {
-                backgroundStyle[2] = parseInt(e.target.value);
-            }
-            renderPreview();
-        });
-
+        // --- Core Rendering Logic ---
         function renderPreview() {
             quoteRenderer(preview, ctx);
         }
@@ -378,6 +369,7 @@
             const h = _canvas.height;
             _ctx.clearRect(0, 0, w, h);
 
+            // Draw Background
             if (backgroundImage) {
                 const scale = Math.max(w / backgroundImage.width, h / backgroundImage.height);
                 const scaledWidth = backgroundImage.width * scale;
@@ -410,7 +402,6 @@
             // Accent Bar
             _ctx.fillStyle = accentEl.value;
             _ctx.beginPath();
-            // Fallback for roundRect in older browsers? Mobile Safari supports it now.
             if (_ctx.roundRect) {
                 _ctx.roundRect(w * 0.06, h * 0.06, w * 0.88, h * 0.015, w * 0.88);
             } else {
@@ -418,7 +409,7 @@
             }
             _ctx.fill();
 
-            // Text
+            // Text Setup
             const fontFamily = fontEl.value.split(' ').slice(1).join(' ');
             const fontSize = parseInt(sizeEl.value, 10) * (_canvas.width / 1080);
 
@@ -446,12 +437,7 @@
             }
 
             const totalHeight = (lines.length + (author ? 1.5 : 0)) * lineHeight;
-            let y = ((h - totalHeight) / 2) + (lineHeight); 
-
-            // Adjust y slightly based on slider to allow manual vertical shift? 
-            // Original code had a shift logic: ((h - totalHeight) / 1.8) + ((sizeEl.value / 84) * 40);
-            // Let's stick to centering for now to be safe.
-             y = ((h - totalHeight) / 1.8) + (fontSize * 0.5);
+            let y = ((h - totalHeight) / 1.8) + (fontSize * 0.5);
 
             lines.forEach(line => {
                 _ctx.fillText(line, w / 2, y);
@@ -464,23 +450,268 @@
             }
         }
 
+        // --- Standard UI Listeners ---
         renderBtn.addEventListener('click', renderPreview);
         [quoteEl, authorEl, fontEl, sizeEl, textColorEl, accentEl, textStyleEl, textWeightEl].forEach(el => el.addEventListener('input', renderPreview));
-        
-        // Initial render
-        renderPreview();
 
-        downloadBtn.addEventListener('click', () => {
-            const c = document.createElement('canvas'); 
-            c.width = 1080; 
-            c.height = parseInt(sizeSelect.value, 10);
+        options.forEach(o => o.addEventListener('click', () => {
+            backgroundStyle = extractColors(o.dataset.bg);
+            backgroundImage = null;
+            renderPreview();
+        }));
+
+        uploadBg.addEventListener('click', () => bgFile.click());
+        bgFile.addEventListener('change', e => {
+            const f = e.target.files[0]; if (!f) return;
+            const url = URL.createObjectURL(f);
+            const img = new Image();
+            img.onload = () => { backgroundImage = img; URL.revokeObjectURL(url); renderPreview(); }
+            img.src = url;
+        });
+
+        solidBg.addEventListener('input', (e) => { backgroundImage = null; backgroundStyle = e.target.value; renderPreview(); });
+        gradientBg1.addEventListener('input', (e) => {
+            backgroundImage = null;
+            if (typeof backgroundStyle === 'string') backgroundStyle = [e.target.value, gradientBg2.value];
+            else backgroundStyle[0] = e.target.value;
+            renderPreview();
+        });
+        gradientBg2.addEventListener('input', (e) => {
+            backgroundImage = null;
+            if (typeof backgroundStyle === 'string') backgroundStyle = [gradientBg1.value, e.target.value];
+            else backgroundStyle[1] = e.target.value;
+            renderPreview();
+        });
+        gradientAngle.addEventListener('input', (e) => {
+            backgroundImage = null;
+            if (typeof backgroundStyle === 'string') backgroundStyle = [gradientBg1.value, gradientBg2.value, parseInt(e.target.value)];
+            else backgroundStyle[2] = parseInt(e.target.value);
+            renderPreview();
+        });
+
+        // --- AI Implementation ---
+
+        // 1. Settings Flow
+        settingsBtn.addEventListener('click', () => {
+            openaiKeyInput.value = localStorage.getItem('qw_openai_key') || '';
+            hfKeyInput.value = localStorage.getItem('qw_hf_key') || '';
+            settingsModal.classList.add('active');
+        });
+
+        closeSettings.addEventListener('click', () => settingsModal.classList.remove('active'));
+
+        saveKeysBtn.addEventListener('click', () => {
+            aiService.saveKeys(openaiKeyInput.value.trim(), hfKeyInput.value.trim());
+            settingsModal.classList.remove('active');
+            alert("Keys saved to local storage!");
+        });
+
+        function checkAIKey(type) {
+            if (!aiService.hasKey(type)) {
+                if (confirm(`You need an ${type === 'text' ? 'OpenAI' : 'HuggingFace'} API key for this feature. Open settings?`)) {
+                    settingsBtn.click();
+                }
+                return false;
+            }
+            return true;
+        }
+
+        // 2. Magic Quote
+        magicBtn.addEventListener('click', async () => {
+            if (!checkAIKey('text')) return;
+
+            const topic = magicTopic.value.trim();
+            magicBtn.disabled = true;
+            magicBtn.innerHTML = '<span class="loader-spinner"></span>';
+
+            try {
+                const result = await aiService.generateQuote(topic);
+                quoteEl.value = result.quote;
+                authorEl.value = result.author;
+                renderPreview();
+            } catch (err) {
+                alert(`Error: ${err.message}`);
+                console.error(err);
+            } finally {
+                magicBtn.disabled = false;
+                magicBtn.textContent = 'Generate';
+            }
+        });
+
+        // 3. Auto-Style (Smart Styling)
+        scanStyleBtn.addEventListener('click', async () => {
+            if (!quoteEl.value) return;
+            if (!checkAIKey('text')) return;
+
+            scanStyleBtn.disabled = true;
+            previewContainer.classList.remove('shimmer'); // reset
+            void previewContainer.offsetWidth; // force reflow
+            previewContainer.classList.add('shimmer'); // animate
+
+            try {
+                const style = await aiService.analyzeSentimentAndStyle(quoteEl.value);
+
+                // Apply Styles
+                textColorEl.value = "#ffffff"; // Keep simple usually
+                accentEl.value = style.accents;
+
+                // Map generic font suggestion to specific options (simple heuristic)
+                if (style.font === 'serif') fontEl.value = "48px 'Georgia', serif";
+                else if (style.font === 'cursive') fontEl.value = "54px 'Brush Script MT', cursive";
+                else fontEl.value = "46px 'Helvetica Neue', Arial, sans-serif";
+
+                // Set Gradients
+                gradientBg1.value = style.colors[0];
+                gradientBg2.value = style.colors[1];
+                backgroundStyle = [style.colors[0], style.colors[1], 45];
+                backgroundImage = null; // Clear image if set
+
+                // Set Animation Preference
+                currentAnimation = style.animation;
+
+                renderPreview();
+            } catch (err) {
+                console.error(err);
+                alert("Could not analyze styling.");
+            } finally {
+                scanStyleBtn.disabled = false;
+                previewContainer.classList.remove('shimmer');
+            }
+        });
+
+        // 4. AI Background
+        aiBgBtn.addEventListener('click', async () => {
+            if (!quoteEl.value) return;
+            if (!checkAIKey('image')) return;
+
+            aiBgBtn.disabled = true;
+            aiBgBtn.textContent = "Painting...";
+            previewContainer.classList.add('shimmer');
+
+            try {
+                // Use quote as prompt context
+                const blob = await aiService.generateImage(`minimalist, aesthetic background, ${quoteEl.value}`);
+                const url = URL.createObjectURL(blob);
+                const img = new Image();
+                img.onload = () => {
+                    backgroundImage = img;
+                    URL.revokeObjectURL(url);
+                    renderPreview();
+                };
+                img.src = url;
+            } catch (err) {
+                alert("Image generation failed. Check your token?");
+            } finally {
+                aiBgBtn.disabled = false;
+                aiBgBtn.innerHTML = "🎨 AI Background";
+                previewContainer.classList.remove('shimmer');
+            }
+        });
+
+        // 5. Smart Video
+        downloadVideoBtn.addEventListener('click', () => {
+            if (animationRunning) return;
+            animationRunning = true;
+            downloadVideoBtn.textContent = "Recording...";
+
+            const c = document.createElement('canvas');
+            c.width = 1080; c.height = parseInt(sizeSelect.value, 10);
             const g = c.getContext('2d');
-            
-            // Standardizing export to 1x scale for consistent file size or usage
-            // But preserving HighDPI if user wants? usually for export we want exact pixels of 1080w.
-            
-            quoteRenderer(c, g);
 
+            const stream = c.captureStream(30);
+            const chunks = [];
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 5_000_000 });
+
+            recorder.ondataavailable = e => chunks.push(e.data);
+            recorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'video/webm' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'quote-video.webm';
+                a.click();
+                URL.revokeObjectURL(url);
+
+                animationRunning = false;
+                downloadVideoBtn.textContent = "Smart Video 🎬";
+            };
+            recorder.start();
+
+            const duration = 5;
+            const totalFrames = duration * 30;
+            let frame = 0;
+
+            function animate() {
+                const progress = frame / totalFrames;
+
+                // Smart Animation Logic
+                if (currentAnimation === 'drift') {
+                    // Drift angle
+                    if (Array.isArray(backgroundStyle)) {
+                        backgroundStyle[2] = (progress * 360) % 360;
+                    }
+                } else if (currentAnimation === 'pulse') {
+                    // Zoom effect ?? For now just color pulse
+                    // (Simulate by shifting color 1 slightly?? - Keeping simple rotation for stability)
+                    if (Array.isArray(backgroundStyle)) {
+                        backgroundStyle[2] = 45 + Math.sin(progress * Math.PI * 2) * 20;
+                    }
+                } else {
+                    if (Array.isArray(backgroundStyle)) {
+                        backgroundStyle[2] = (progress * 180) % 360;
+                    }
+                }
+
+                quoteRenderer(c, g);
+                frame++;
+                if (frame < totalFrames) requestAnimationFrame(animate);
+                else recorder.stop();
+            }
+            animate();
+        });
+
+        // Fallback Random (Old Logic)
+        randomBtn.addEventListener('click', async () => {
+            const qoutesApiUrl = "https://api.adviceslip.com/advice";
+            try {
+                const response = await fetch(qoutesApiUrl);
+                const data = await response.json();
+                if (data && data.slip) {
+                    quoteEl.value = data.slip.advice;
+                    authorEl.value = "Unknown";
+                    renderPreview();
+                }
+            } catch (err) {
+                console.error(err);
+            }
+        });
+
+        // Theme Toggle
+        const currentTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+
+        document.getElementById('theme-toggle').addEventListener('click', () => {
+            const cur = document.documentElement.getAttribute('data-theme');
+            const next = cur === 'dark' ? 'light' : 'dark';
+            const moonIcon = document.getElementById('moon-icon');
+            const sunIcon = document.getElementById('sun-icon');
+            if (next === 'dark') {
+                moonIcon.classList.add('hidden');
+                sunIcon.classList.remove('hidden');
+            } else {
+                moonIcon.classList.remove('hidden');
+                sunIcon.classList.add('hidden');
+            }
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        });
+
+        // Downloads
+        downloadBtn.addEventListener('click', () => {
+            const c = document.createElement('canvas');
+            c.width = 1080; c.height = parseInt(sizeSelect.value, 10);
+            const g = c.getContext('2d');
+            quoteRenderer(c, g);
             c.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
                 const aTag = document.createElement('a');
@@ -491,88 +722,15 @@
             });
         });
 
-        downloadVideoBtn.addEventListener('click', () => {
-            if (animationRunning || typeof backgroundStyle === 'string') return;
-            animationRunning = true;
-
-            const c = document.createElement('canvas'); 
-            c.width = 1080; 
-            c.height = parseInt(sizeSelect.value, 10);
-            const g = c.getContext('2d');
-
-            const stream = c.captureStream(30);
-            const chunks = [];
-            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 5_000_000 });
-            recorder.ondataavailable = e => chunks.push(e.data);
-            recorder.onstop = () => {
-                const blob = new Blob(chunks, { type: 'video/webm' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'quote-video.webm';
-                a.click();
-                URL.revokeObjectURL(url);
-                animationRunning = false;
-            };
-            recorder.start();
-
-            const duration = 6; 
-            const totalFrames = duration * 30;
-            let frame = 0;
-
-            function animate() {
-                const progress = frame / totalFrames;
-                // Rotate hue or angle? Original rotated angle.
-                // make sure backgroundStyle is array
-                if (Array.isArray(backgroundStyle)) {
-                     backgroundStyle[2] = (progress * 360) % 360;
-                }
-                
-                quoteRenderer(c, g);
-                frame++;
-                if (frame < totalFrames) requestAnimationFrame(animate);
-                else recorder.stop();
-            }
-            animate();
-        });
-
         copyCaptionBtn.addEventListener('click', () => {
-            const caption = `${quoteEl.value.trim()}\n${authorEl.value.trim()}\n\n#quote #motivation #lifequotes #inspiration #mindset #positivity`;
-            navigator.clipboard.writeText(caption).then(() => {
-                const originalText = copyCaptionBtn.textContent;
-                copyCaptionBtn.textContent = 'Copied!';
-                setTimeout(() => copyCaptionBtn.textContent = originalText, 1500);
-            });
+            navigator.clipboard.writeText(`${quoteEl.value}\n${authorEl.value}`);
+            alert("Copied!");
         });
 
-        // Theme Toggle Logic
-        const themeToggleBtn = document.getElementById('theme-toggle');
-        const sunIcon = document.getElementById('sun-icon');
-        const moonIcon = document.getElementById('moon-icon');
-
-        function updateThemeIcons(theme) {
-            if (theme === 'dark') {
-                sunIcon.classList.add('hidden');
-                moonIcon.classList.remove('hidden');
-            } else {
-                moonIcon.classList.add('hidden');
-                sunIcon.classList.remove('hidden');
-            }
-        }
-
-        // Init theme
-        const savedTheme = localStorage.getItem('theme') || 'light';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        updateThemeIcons(savedTheme);
-
-        themeToggleBtn.addEventListener('click', () => {
-             const current = document.documentElement.getAttribute('data-theme');
-             const next = current === 'dark' ? 'light' : 'dark';
-             document.documentElement.setAttribute('data-theme', next);
-             localStorage.setItem('theme', next);
-             updateThemeIcons(next);
-        });
+        // Initialize
+        renderPreview();
 
     </script>
 </body>
+
 </html>

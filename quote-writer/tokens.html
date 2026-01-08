@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Get API Keys | Quote Writer AI</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .tutorial-container {
+            max-width: 800px;
+            margin: 4rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .step-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin-bottom: 2rem;
+            backdrop-filter: blur(12px);
+        }
+
+        .step-number {
+            display: inline-flex;
+            width: 32px;
+            height: 32px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            margin-right: 0.75rem;
+        }
+
+        h2 {
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: var(--text-main);
+        }
+
+        a {
+            color: var(--accent);
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        code {
+            background: rgba(0, 0, 0, 0.1);
+            padding: 0.2rem 0.4rem;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="tutorial-container">
+        <header style="text-align: center; margin-bottom: 3rem;">
+            <h1
+                style="font-size: 2.5rem; margin-bottom: 0.5rem; background: var(--gradient-primary); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+                Getting Your AI Keys</h1>
+            <p style="color: var(--text-muted);">Follow these steps to unlock magic features in Quote Writer.</p>
+        </header>
+
+        <!-- OpenAI Tutorial -->
+        <section class="step-card">
+            <h2><span class="step-number">1</span> OpenAI Key (Texts & Styling)</h2>
+            <p style="margin-bottom: 1rem;">Needed for <strong>Magic Quotes</strong> and <strong>Auto-Styling</strong>.
+            </p>
+
+            <ol style="margin-left: 1.5rem; line-height: 1.8; color: var(--text-muted);">
+                <li>Go to <a href="https://platform.openai.com/signup" target="_blank">platform.openai.com</a> and sign
+                    up/log in.</li>
+                <li>Click on <strong>Dashboard</strong> or your profile icon in the top right.</li>
+                <li>Navigate to <strong>"API Keys"</strong> in the sidebar.</li>
+                <li>Click <strong>"+ Create new secret key"</strong>.</li>
+                <li>Name it "Quote Writer" and copy the key starting with <code>sk-...</code>.</li>
+                <li>Paste it into the Quote Writer Settings.</li>
+            </ol>
+        </section>
+
+        <!-- HuggingFace Tutorial -->
+        <section class="step-card">
+            <h2><span class="step-number">2</span> HuggingFace Token (Images)</h2>
+            <p style="margin-bottom: 1rem;">Needed for <strong>AI Backgrounds</strong>. (It's free!)</p>
+
+            <ol style="margin-left: 1.5rem; line-height: 1.8; color: var(--text-muted);">
+                <li>Go to <a href="https://huggingface.co/join" target="_blank">huggingface.co</a> and create an
+                    account.</li>
+                <li>Go to <strong>Settings</strong> > <strong>Access Tokens</strong> (or click <a
+                        href="https://huggingface.co/settings/tokens" target="_blank">here</a>).</li>
+                <li>Click <strong>"Create new token"</strong>.</li>
+                <li>Select <strong>"Read"</strong> access type.</li>
+                <li>Name it "Quote App" and copy the token starting with <code>hf_...</code>.</li>
+                <li>Paste it into the Quote Writer Settings.</li>
+            </ol>
+        </section>
+
+        <div style="text-align: center;">
+            <a href="index.html" class="btn btn-primary" style="text-decoration: none; display: inline-block;">Back to
+                App</a>
+        </div>
+    </div>
+</body>
+
+</html>

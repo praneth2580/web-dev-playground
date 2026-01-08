@@ -1,0 +1,20 @@
+{
+  "name": "quote-writer",
+  "version": "1.0.0",
+  "description": "AI-powered Instagram Quote Generator",
+  "scripts": {
+    "start": "npx http-server . -o -c-1",
+    "dev": "npx http-server . -o -c-1"
+  },
+  "keywords": [
+    "ai",
+    "quote",
+    "generator",
+    "instagram"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "http-server": "^14.1.1"
+  }
+}
