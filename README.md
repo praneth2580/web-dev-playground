@@ -16,6 +16,7 @@ Here is a list of the projects included in this repository:
 | **Relations Graph** | A 3D force-directed graph visualizer for defining nodes and relationships. | [View Source](./relations-graph/index.html) | [Live Demo](https://praneth2580.github.io/web-dev-playground/relations-graph/index.html) |
 | **Stock Scout** | NSE Quick Profit Bot interface. | [View Source](./stock-scout/index.html) | [Live Demo](https://praneth2580.github.io/web-dev-playground/stock-scout/index.html) |
 | **Wallpaper Generator** | A random wallpaper generator. | [View Source](./wallpaper-generator/v1/index.html) | [Live Demo](https://praneth2580.github.io/web-dev-playground/wallpaper-generator/v1/index.html) |
+| **Dart Calculator** | A scoreboard for the dart game. | [View Source](./dart-calculator/index.html) | [Live Demo](https://praneth2580.github.io/web-dev-playground/dart-calculator/index.html) |
 
 > **Note:** `data-sheets (copy)` appears to be a duplicate backup of `data-sheets` and is excluded from the main list.
 
