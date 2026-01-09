@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Darts Party - The Ultimate Darts Scorer</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <!-- Tailwind Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <style>
+        @layer base {
+            body {
+                @apply antialiased text-slate-900 dark:text-slate-100;
+            }
+        }
+
+        .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+        }
+
+        .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+        }
+
+        /* Custom Animations */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fade-in {
+            animation: fadeIn 0.3s ease-out forwards;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .animate-slide-in-right {
+            animation: slideInRight 0.3s ease-out forwards;
+        }
+
+        @keyframes scaleIn {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .animate-scale-in {
+            animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .transition-all-300 {
+            transition: all 0.3s ease;
+        }
+    </style>
+</head>
+
+<body
+    class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 min-h-screen transition-colors duration-300">
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="p-4 flex justify-between items-center max-w-4xl mx-auto w-full relative z-10">
+            <div class="flex items-center gap-2" id="header-left">
+                <!-- Back button injected here -->
+                <h1
+                    class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
+                    DARTS PARTY</h1>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="toggleTheme()"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Toggle theme">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                </button>
+                <button onclick="toggleSound()"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Toggle sound">
+                    <i data-lucide="volume-2" id="sound-on-icon" class="w-5 h-5 hidden"></i>
+                    <i data-lucide="volume-x" id="sound-off-icon" class="w-5 h-5"></i>
+                </button>
+                <button onclick="undoLastThrow()" id="undo-btn"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200 hidden"
+                    aria-label="Undo last throw">
+                    <i data-lucide="undo-2" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main id="main-content" class="max-w-4xl mx-auto pb-8 w-full flex-1 relative z-0"></main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container"
+        class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+    </div>
+
+    <script>
+        // --- CONSTANTS & STATE ---
+        const PLAYER_COLORS = [
+            '#F43F5E', '#8B5CF6', '#10B981', '#F59E0B', '#3B82F6', '#EC4899', '#6366F1', '#14B8A6',
+            '#06B6D4', '#84CC16', '#F97316', '#D946EF', '#A855F7', '#0EA5E9', '#22C55E', '#EAB308',
+            '#EF4444', '#64748B', '#71717A', '#737373', '#78716C'
+        ];
+
+        const TEAM_COLORS = [
+            '#2563EB', '#DC2626', '#16A34A', '#D97706', '#7C3AED', '#DB2777', '#0891B2', '#4F46E5',
+            '#059669', '#EA580C', '#9333EA', '#C026D3', '#0284C7', '#10B981', '#F59E0B', '#6366F1',
+            '#F43F5E', '#8B5CF6', '#F97316', '#06B6D4'
+        ];
+        const INITIAL_LIVES = 3;
+        const TTT_WINS = [[1, 2, 3], [4, 5, 6], [7, 8, 9], [1, 4, 7], [2, 5, 8], [3, 6, 9], [1, 5, 9], [3, 5, 7]];
+        const MODES = [
+            { id: '501', name: '501', desc: 'Race to zero! Standard rules.', icon: 'target', color: 'from-blue-400 to-indigo-500', shadow: 'shadow-blue-500/40' },
+            { id: 'Cricket', name: 'Cricket', desc: 'Close numbers 15-20 & Bull.', icon: 'hash', color: 'from-green-400 to-emerald-600', shadow: 'shadow-green-500/40' },
+            { id: 'Killer', name: 'Killer', desc: 'Take lives from opponents!', icon: 'skull', color: 'from-red-400 to-rose-600', shadow: 'shadow-red-500/40' },
+            { id: 'Tic-Tac-Toe', name: 'Tic-Tac-Toe', desc: 'Claim squares, get 3 in a row.', icon: 'box', color: 'from-orange-400 to-amber-500', shadow: 'shadow-orange-500/40' },
+        ];
+
+        let state = {
+            view: 'mode-select', // 'mode-select', 'player-setup', 'game-active'
+            gameMode: '501',
+            players: [
+                { id: '1', name: 'Player 1', score: 0, color: PLAYER_COLORS[0] },
+                { id: '2', name: 'Player 2', score: 0, color: PLAYER_COLORS[1] }
+            ],
+            teams: [],
+            currentPlayerIndex: 0,
+            currentTeamIndex: 0,
+            isPlayerType: true,
+            activeParticipants: [],
+            gameHistory: [],
+            winner: null,
+            history: [],
+            roundThrows: [],
+            isDark: localStorage.getItem('theme') === 'dark' || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
+            soundEnabled: localStorage.getItem('darts_sound_enabled') !== 'false'
+        };
+
+        // --- DATABASE (IndexedDB) ---
+        const db = {
+            name: 'DartsPartyDB',
+            version: 1,
+            instance: null,
+
+            init() {
+                return new Promise((resolve, reject) => {
+                    const request = indexedDB.open(this.name, this.version);
+                    request.onupgradeneeded = (e) => {
+                        const database = e.target.result;
+                        if (!database.objectStoreNames.contains('setup')) {
+                            database.createObjectStore('setup', { keyPath: 'id' });
+                        }
+                        if (!database.objectStoreNames.contains('games')) {
+                            database.createObjectStore('games', { keyPath: 'id', autoIncrement: true });
+                        }
+                    };
+                    request.onsuccess = (e) => {
+                        this.instance = e.target.result;
+                        resolve();
+                    };
+                    request.onerror = (e) => reject(e.target.error);
+                });
+            },
+
+            async saveParticipants() {
+                if (!this.instance) return;
+                const tx = this.instance.transaction('setup', 'readwrite');
+                const store = tx.objectStore('setup');
+                await store.put({ id: 'players', data: JSON.parse(JSON.stringify(state.players)) });
+                await store.put({ id: 'teams', data: JSON.parse(JSON.stringify(state.teams)) });
+                await store.put({ id: 'config', data: { isPlayerType: state.isPlayerType } });
+            },
+
+            async loadParticipants() {
+                if (!this.instance) return;
+                const tx = this.instance.transaction('setup', 'readonly');
+                const store = tx.objectStore('setup');
+                const playersReq = store.get('players');
+                const teamsReq = store.get('teams');
+                const configReq = store.get('config');
+
+                return new Promise((resolve) => {
+                    let loaded = 0;
+                    const check = () => {
+                        if (++loaded === 3) resolve();
+                    };
+                    playersReq.onsuccess = () => { if (playersReq.result) state.players = playersReq.result.data; check(); };
+                    teamsReq.onsuccess = () => { if (teamsReq.result) state.teams = teamsReq.result.data; check(); };
+                    configReq.onsuccess = () => { if (configReq.result) state.isPlayerType = configReq.result.data.isPlayerType; check(); };
+                    playersReq.onerror = teamsReq.onerror = configReq.onerror = check;
+                });
+            },
+
+            async saveGame(gameData) {
+                if (!this.instance) return;
+                const tx = this.instance.transaction('games', 'readwrite');
+                const store = tx.objectStore('games');
+                await store.add({
+                    ...gameData,
+                    timestamp: new Date().toISOString()
+                });
+            },
+
+            async getGames() {
+                if (!this.instance) return [];
+                const tx = this.instance.transaction('games', 'readonly');
+                const store = tx.objectStore('games');
+                const request = store.getAll();
+                return new Promise((resolve) => {
+                    request.onsuccess = () => resolve(request.result.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp)));
+                    request.onerror = () => resolve([]);
+                });
+            },
+
+            async clearHistory() {
+                if (!this.instance) return;
+                const tx = this.instance.transaction('games', 'readwrite');
+                const store = tx.objectStore('games');
+                await store.clear();
+            }
+        };
+
+        // Initialize default players/teams
+        state.players = [
+            { id: 'p1', name: 'Player 1', score: 0, color: PLAYER_COLORS[0] },
+            { id: 'p2', name: 'Player 2', score: 0, color: PLAYER_COLORS[1] }
+        ];
+        state.teams = [
+            { id: 't1', name: 'Team 1', score: 0, color: TEAM_COLORS[0], players: [] },
+            { id: 't2', name: 'Team 2', score: 0, color: TEAM_COLORS[1], players: [] }
+        ];
+
+        // --- THEME & SOUND ---
+        function updateTheme() {
+            document.documentElement.classList.toggle('dark', state.isDark);
+            localStorage.setItem('theme', state.isDark ? 'dark' : 'light');
+        }
+
+        function toggleTheme() {
+            state.isDark = !state.isDark;
+            updateTheme();
+            lucide.createIcons();
+        }
+
+        function updateSoundIcons() {
+            document.getElementById('sound-on-icon').classList.toggle('hidden', !state.soundEnabled);
+            document.getElementById('sound-off-icon').classList.toggle('hidden', state.soundEnabled);
+        }
+
+        function toggleSound() {
+            state.soundEnabled = !state.soundEnabled;
+            localStorage.setItem('darts_sound_enabled', state.soundEnabled);
+            updateSoundIcons();
+            playSound('click');
+        }
+
+        const createSound = (type) => {
+            if (!state.soundEnabled) return;
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!AudioContext) return;
+            const ctx = new AudioContext();
+            const now = ctx.currentTime;
+
+            if (type === 'click') {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(800, now);
+                osc.frequency.exponentialRampToValueAtTime(300, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.exponentialRampToValueAtTime(0.01, now + 0.1);
+                osc.start(now); osc.stop(now + 0.1);
+            } else if (type === 'win') {
+                [0, 0.1, 0.2, 0.3, 0.4].forEach((t, i) => {
+                    const osc = ctx.createOscillator();
+                    const gain = ctx.createGain();
+                    osc.connect(gain); gain.connect(ctx.destination);
+                    osc.type = 'triangle';
+                    osc.frequency.value = 440 * Math.pow(1.5, i);
+                    gain.gain.setValueAtTime(0.2, now + t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + t + 0.3);
+                    osc.start(now + t); osc.stop(now + t + 0.3);
+                });
+            } else if (type === 'milestone') {
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.connect(gain); gain.connect(ctx.destination);
+                osc.frequency.setValueAtTime(500, now);
+                osc.frequency.linearRampToValueAtTime(1000, now + 0.1);
+                gain.gain.setValueAtTime(0.3, now);
+                gain.gain.linearRampToValueAtTime(0, now + 0.3);
+                osc.start(now); osc.stop(now + 0.3);
+            }
+        };
+
+        function playSound(type) { try { createSound(type); } catch (e) { } }
+
+        // --- GAME LOGIC ---
+        function initGame(mode, participants) {
+            state.gameMode = mode;
+            state.activeParticipants = participants.map((p, i) => ({
+                ...p,
+                score: mode === '501' ? 501 : mode === 'Killer' ? INITIAL_LIVES : 0,
+                cricketState: mode === 'Cricket' ? { 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 25: 0 } : undefined,
+                killerTarget: mode === 'Killer' ? i + 1 : undefined,
+                tttClaims: [],
+            }));
+            state.currentPlayerIndex = 0;
+            state.winner = null;
+            state.history = [];
+            state.roundThrows = [];
+            render();
+        }
+
+        function handleScore(basePoints, multiplier) {
+            if (state.winner) return;
+            const points = basePoints * multiplier;
+            const previousState = JSON.parse(JSON.stringify({ ...state, history: [] }));
+
+            let participants = JSON.parse(JSON.stringify(state.activeParticipants));
+            let winner = null;
+            let turnEnded = false;
+
+            if (state.gameMode === '501') {
+                const currentScore = participants[state.currentPlayerIndex].score;
+                const newScore = currentScore - points;
+                if (newScore === 0) {
+                    participants[state.currentPlayerIndex].score = 0;
+                    winner = participants[state.currentPlayerIndex];
+                } else if (newScore > 0) {
+                    participants[state.currentPlayerIndex].score = newScore;
+                }
+            } else if (state.gameMode === 'Cricket') {
+                const target = (basePoints === 50 || basePoints === 25) ? 25 : basePoints;
+                const validTargets = [15, 16, 17, 18, 19, 20, 25];
+                if (validTargets.includes(target)) {
+                    let hitsToApply = multiplier;
+                    let currentHits = participants[state.currentPlayerIndex].cricketState[target];
+                    if (currentHits < 3) {
+                        const used = Math.min(3 - currentHits, hitsToApply);
+                        currentHits += used;
+                        hitsToApply -= used;
+                        participants[state.currentPlayerIndex].cricketState[target] = currentHits;
+                    }
+                    if (hitsToApply > 0) {
+                        const anyoneOpen = participants.some((p, i) => i !== state.currentPlayerIndex && p.cricketState[target] < 3);
+                        if (anyoneOpen) participants[state.currentPlayerIndex].score += target * hitsToApply;
+                    }
+                    if (validTargets.every(t => participants[state.currentPlayerIndex].cricketState[t] >= 3)) {
+                        const highestScore = Math.max(...participants.map(p => p.score));
+                        if (participants[state.currentPlayerIndex].score >= highestScore) winner = participants[state.currentPlayerIndex];
+                    }
+                }
+            } else if (state.gameMode === 'Killer') {
+                const targetOwnerIndex = participants.findIndex(p => p.killerTarget === basePoints);
+                if (targetOwnerIndex !== -1) {
+                    if (targetOwnerIndex === state.currentPlayerIndex) {
+                        if (participants[targetOwnerIndex].score < 5) participants[targetOwnerIndex].score += 1;
+                    } else if (participants[targetOwnerIndex].score > 0) {
+                        participants[targetOwnerIndex].score -= 1;
+                    }
+                }
+                const alive = participants.filter(p => p.score > 0);
+                if (alive.length === 1) winner = alive[0];
+            } else if (state.gameMode === 'Tic-Tac-Toe') {
+                if (basePoints >= 1 && basePoints <= 9) {
+                    if (!participants.some(p => p.tttClaims.includes(basePoints))) {
+                        participants[state.currentPlayerIndex].tttClaims.push(basePoints);
+                        if (TTT_WINS.some(c => c.every(n => participants[state.currentPlayerIndex].tttClaims.includes(n)))) {
+                            winner = participants[state.currentPlayerIndex];
+                        }
+                    }
+                }
+            }
+
+            state.activeParticipants = participants;
+            state.roundThrows.push(points);
+
+            if (state.roundThrows.length >= 3 || winner) {
+                turnEnded = true;
+                if (!winner) {
+                    state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
+                    if (state.gameMode === 'Killer') {
+                        let attempts = 0;
+                        while (state.players[state.currentPlayerIndex].score <= 0 && attempts < state.players.length) {
+                            state.currentPlayerIndex = (state.currentPlayerIndex + 1) % state.players.length;
+                            attempts++;
+                        }
+                    }
+                }
+            }
+
+            if (winner) {
+                state.winner = winner;
+                playSound('win');
+                startConfetti();
+                db.saveGame({
+                    mode: state.gameMode,
+                    participants: state.activeParticipants,
+                    winner: winner
+                });
+            } else if (points >= 60 || basePoints === 50) {
+                playSound('milestone');
+            } else {
+                playSound('click');
+            }
+
+            state.history.push(previousState);
+            if (state.history.length > 5) state.history.shift();
+            if (turnEnded) state.roundThrows = [];
+            render();
+        }
+
+        function undoLastThrow() {
+            if (state.history.length === 0) return;
+            const prev = state.history.pop();
+            Object.assign(state, prev);
+            render();
+        }
+
+        // --- CONFETTI ---
+        let confettiAnimationId;
+        function startConfetti() {
+            const canvas = document.getElementById('confetti-canvas');
+            canvas.classList.remove('hidden');
+            const ctx = canvas.getContext('2d');
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            let particles = [];
+            const COLORS = ['#F472B6', '#FBBF24', '#60A5FA', '#34D399', '#A78BFA', '#F87171'];
+            for (let i = 0; i < 150; i++) {
+                particles.push({
+                    x: canvas.width / 2, y: canvas.height / 2,
+                    vx: (Math.random() - 0.5) * 20, vy: (Math.random() - 0.5) * 20 - 5,
+                    color: COLORS[Math.floor(Math.random() * COLORS.length)],
+                    rotation: Math.random() * 360, rotationSpeed: (Math.random() - 0.5) * 10,
+                    size: Math.random() * 8 + 4
+                });
+            }
+            function animate() {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                particles.forEach((p, i) => {
+                    p.x += p.vx; p.y += p.vy; p.vy += 0.2; p.vx *= 0.96; p.rotation += p.rotationSpeed;
+                    ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.rotation * Math.PI / 180);
+                    ctx.fillStyle = p.color; ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size); ctx.restore();
+                    if (p.y > canvas.height) particles.splice(i, 1);
+                });
+                if (particles.length > 0) confettiAnimationId = requestAnimationFrame(animate);
+                else canvas.classList.add('hidden');
+            }
+            animate();
+        }
+
+        // --- RENDERING ---
+        function render() {
+            const main = document.getElementById('main-content');
+            const headerLeft = document.getElementById('header-left');
+            const undoBtn = document.getElementById('undo-btn');
+
+            // Back button logic
+            headerLeft.innerHTML = (state.view !== 'mode-select')
+                ? `<button onclick="goBack()" class="p-2 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"><i data-lucide="chevron-left" class="w-6 h-6"></i></button>`
+                : '';
+            headerLeft.innerHTML += `<h1 class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">DARTS PARTY</h1>`;
+
+            undoBtn.classList.toggle('hidden', state.view !== 'game-active' || state.winner !== null);
+
+            main.innerHTML = '';
+            if (state.view === 'mode-select') renderModeSelect(main);
+            else if (state.view === 'player-setup') renderType(main);
+            else if (state.view === 'game-active') renderGameActive(main);
+            else if (state.view === 'history') renderHistory(main);
+
+            renderModal();
+            updateSoundIcons();
+            lucide.createIcons();
+        }
+
+        function goBack() {
+            if (state.view === 'game-active') state.view = 'player-setup';
+            else if (state.view === 'player-setup') state.view = 'mode-select';
+            else if (state.view === 'history') state.view = 'mode-select';
+            render();
+        }
+
+        function renderModeSelect(container) {
+            container.innerHTML = `
+                <div class="pt-8 animate-fade-in">
+                    <div class="text-center mb-8">
+                        <h2 class="text-4xl font-black text-gray-900 dark:text-white mb-2">Let's Play Darts!</h2>
+                        <p class="text-gray-500 dark:text-gray-400">Choose a game mode to get the party started.</p>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 max-w-2xl mx-auto">
+                        ${MODES.map((mode, i) => `
+                            <button onclick="selectMode('${mode.id}')" class="relative overflow-hidden rounded-3xl p-6 text-left h-40 flex flex-col justify-between bg-gradient-to-br ${mode.color} ${mode.shadow} shadow-lg text-white dark:brightness-90 dark:hover:brightness-100 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                                <div class="absolute top-0 right-0 p-4 opacity-20 transform rotate-12 scale-150">
+                                    <i data-lucide="${mode.icon}" style="width: 80px; height: 80px;"></i>
+                                </div>
+                                <div class="relative z-10">
+                                    <div class="bg-white/20 w-fit p-2 rounded-xl mb-3 backdrop-blur-sm">
+                                        <i data-lucide="${mode.icon}" class="w-6 h-6"></i>
+                                    </div>
+                                    <h3 class="text-2xl font-black tracking-tight">${mode.name}</h3>
+                                    <p class="text-white/90 font-medium text-sm mt-1">${mode.desc}</p>
+                                </div>
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="flex justify-center mt-8 px-4">
+                        <button onclick="viewHistory()" class="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-all text-gray-700 dark:text-gray-200 font-bold">
+                            <i data-lucide="history" class="w-5 h-5"></i>
+                            View Game History
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function selectMode(id) {
+            state.gameMode = id;
+            state.view = 'player-setup';
+            playSound('click');
+            render();
+        }
+
+        async function viewHistory() {
+            state.view = 'history';
+            state.gameHistory = await db.getGames();
+            playSound('click');
+            render();
+        }
+
+        async function clearHistory() {
+            if (confirm('Are you sure you want to clear your game history?')) {
+                await db.clearHistory();
+                state.gameHistory = [];
+                render();
+            }
+        }
+
+        function renderHistory(container) {
+            container.innerHTML = `
+                <div class="pt-8 px-4 animate-scale-in max-w-2xl mx-auto">
+                    <div class="flex justify-between items-center mb-8">
+                        <div>
+                            <h2 class="text-3xl font-black text-gray-900 dark:text-white mb-1">Game History</h2>
+                            <p class="text-gray-500 dark:text-gray-400">Your past victories and sessions.</p>
+                        </div>
+                        ${state.gameHistory.length > 0 ? `
+                            <button onclick="clearHistory()" class="p-2 text-gray-400 hover:text-red-500 transition-colors" title="Clear History">
+                                <i data-lucide="trash-2" class="w-6 h-6"></i>
+                            </button>
+                        ` : ''}
+                    </div>
+
+                    ${state.gameHistory.length === 0 ? `
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl p-12 text-center shadow-sm">
+                            <div class="w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                                <i data-lucide="info" class="w-8 h-8"></i>
+                            </div>
+                            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">No games yet!</h3>
+                            <p class="text-gray-500 dark:text-gray-400 mb-6">Play some matches to see your history here.</p>
+                            <button onclick="state.view = 'mode-select'; render();" class="px-6 py-2 bg-purple-600 text-white rounded-xl font-bold">Start Playing</button>
+                        </div>
+                    ` : `
+                        <div class="space-y-4">
+                            ${state.gameHistory.map(game => `
+                                <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-transparent hover:border-purple-200 dark:hover:border-purple-900/30 transition-all">
+                                    <div class="flex justify-between items-start mb-3">
+                                        <div class="flex items-center gap-3">
+                                            <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                                                <i data-lucide="target" class="w-6 h-6"></i>
+                                            </div>
+                                            <div>
+                                                <div class="font-black text-gray-900 dark:text-white">${game.mode}</div>
+                                                <div class="text-xs text-gray-500 dark:text-gray-400">${new Date(game.timestamp).toLocaleDateString()} at ${new Date(game.timestamp).toLocaleTimeString([], { hour: '2-bit', minute: '2-bit' })}</div>
+                                            </div>
+                                        </div>
+                                        <div class="text-right">
+                                            <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Winner</div>
+                                            <div class="font-bold" style="color: ${game.winner.color}">${game.winner.name}</div>
+                                        </div>
+                                    </div>
+                                    <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+                                        ${game.participants.map(p => `
+                                            <div class="flex items-center gap-1.5 px-2 py-1 bg-gray-50 dark:bg-slate-900/50 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 white-nowrap">
+                                                <div class="w-2 h-2 rounded-full" style="background-color: ${p.color}"></div>
+                                                ${p.name}: ${p.score}
+                                            </div>
+                                        `).join('')}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    `}
+                </div>
+            `;
+        }
+
+        function renderType(container) {
+            container.innerHTML = `
+                <div class="max-w-md mx-auto">
+                    <div class="flex-1 bg-gray-50 dark:bg-slate-500 px-4 py-2 rounded-xl">
+                        <div class="flex justify-center items-center gap-3 animate-scale-in">
+                            <div onclick="switchType()" class="flex-1 text-center rounded-xl px-2 py-1 text-dark dark:text-white ${state.isPlayerType ? 'bg-red-500 dark:bg-red-500 cursor-default' : 'cursor-pointer'}">
+                                Player
+                            </div>
+                            <div onclick="switchType()" class="flex-1 text-center rounded-xl px-2 py-1 text-dark dark:text-white ${state.isPlayerType ? 'cursor-pointer' : 'bg-green-500 dark:bg-green-500 cursor-default'}">
+                                Team
+                            </div>
+                        </div>
+                    </div>
+                    <div id="player-setup" class="pt-8 px-4 animate-slide-in-right">
+                        ${state.isPlayerType ? renderPlayerSetup(container) : renderTeamSetup(container)}
+                    </div>
+                </div>
+            `
+        }
+
+        function switchType() {
+            state.isPlayerType = !state.isPlayerType;
+            db.saveParticipants();
+            render();
+        }
+
+        function renderPlayerSetup() {
+            return `
+                <div class="animate-slide-in-right">
+                    <div class="max-w-md mx-auto">
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-6 mb-6 transition-colors duration-300">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Players</h3>
+                                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">${state.players.length}/20</span>
+                            </div>
+                            <div id="player-inputs" class="space-y-3">
+                                ${state.players.map(p => `
+                                    <div class="flex items-center gap-3 animate-fade-in">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm flex-shrink-0" style="background-color: ${p.color}">
+                                            <i data-lucide="user" class="w-5 h-5"></i>
+                                        </div>
+                                        <input type="text" value="${p.name}" oninput="updatePlayerName('${p.id}', this.value)" class="flex-1 bg-gray-50 dark:bg-slate-700 border-2 border-transparent focus:border-purple-500 dark:focus:border-purple-400 rounded-xl px-4 py-2 outline-none font-medium text-gray-800 dark:text-white transition-colors" placeholder="Player Name">
+                                        ${state.players.length > 1 ? `<button onclick="removePlayer('${p.id}')" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button onclick="addPlayer()" ${state.players.length >= 20 ? 'disabled' : ''} class="w-full mt-4 py-3 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl text-gray-500 dark:text-gray-400 font-bold flex items-center justify-center gap-2 hover:border-purple-500 hover:text-purple-500 dark:hover:border-purple-400 dark:hover:text-purple-400 transition-colors disabled:opacity-50">
+                                <i data-lucide="plus" class="w-5 h-5"></i> Add Player
+                            </button>
+                        </div>
+                        <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-black text-xl shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                            <i data-lucide="play" class="w-6 h-6 fill-current"></i> START GAME
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function initParticipants() {
+            if (state.isPlayerType) {
+                if (state.players.length === 0) {
+                    state.players = [
+                        { id: 'p1', name: 'Player 1', score: 0, color: PLAYER_COLORS[0] },
+                        { id: 'p2', name: 'Player 2', score: 0, color: PLAYER_COLORS[1] }
+                    ];
+                }
+            } else {
+                if (state.teams.length === 0) {
+                    state.teams = [
+                        { id: 't1', name: 'Team 1', score: 0, color: TEAM_COLORS[0], players: [] },
+                        { id: 't2', name: 'Team 2', score: 0, color: TEAM_COLORS[1], players: [] }
+                    ];
+                }
+            }
+        }
+
+        function addPlayer() {
+            if (state.players.length >= 20) return;
+            const id = Math.random().toString(36).substr(2, 9);
+            const color = PLAYER_COLORS[state.players.length % PLAYER_COLORS.length];
+            state.players.push({ id, name: `Player ${state.players.length + 1}`, score: 0, color });
+            db.saveParticipants();
+            render();
+        }
+
+        function removePlayer(id) {
+            if (state.players.length <= 1) return;
+            state.players = state.players.filter(p => p.id !== id);
+            db.saveParticipants();
+            render();
+        }
+
+        function updatePlayerName(id, name) {
+            const p = state.players.find(p => p.id === id);
+            if (p) {
+                p.name = name;
+                db.saveParticipants();
+            }
+        }
+
+        function renderTeamSetup() {
+            return `
+                <div class="animate-slide-in-right">
+                    <div class="max-w-md mx-auto">
+                        <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-6 mb-6 transition-colors duration-300">
+                            <div class="flex justify-between items-center mb-6">
+                                <h3 class="text-xl font-bold text-gray-800 dark:text-white">Teams</h3>
+                                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">${state.teams.length}/20</span>
+                            </div>
+                            <div id="player-inputs" class="space-y-3">
+                                ${state.teams.map(t => `
+                                    <div class="flex items-center gap-3 animate-fade-in">
+                                        <div class="w-10 h-10 rounded-full flex items-center justify-center text-white shadow-sm flex-shrink-0" style="background-color: ${t.color}">
+                                            <i data-lucide="user" class="w-5 h-5"></i>
+                                        </div>
+                                        <input type="text" value="${t.name}" oninput="updateTeamName('${t.id}', this.value)" class="flex-1 bg-gray-50 dark:bg-slate-700 border-2 border-transparent focus:border-purple-500 dark:focus:border-purple-400 rounded-xl px-4 py-2 outline-none font-medium text-gray-800 dark:text-white transition-colors" placeholder="Player Name">
+                                        ${state.teams.length > 1 ? `<button onclick="removeTeam('${t.id}')" class="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-full transition-colors"><i data-lucide="x" class="w-5 h-5"></i></button>` : ''}
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <button onclick="addTeam()" ${state.teams.length >= 20 ? 'disabled' : ''} class="w-full mt-4 py-3 border-2 border-dashed border-gray-300 dark:border-slate-600 rounded-xl text-gray-500 dark:text-gray-400 font-bold flex items-center justify-center gap-2 hover:border-purple-500 hover:text-purple-500 dark:hover:border-purple-400 dark:hover:text-purple-400 transition-colors disabled:opacity-50">
+                                <i data-lucide="plus" class="w-5 h-5"></i> Add Team
+                            </button>
+                        </div>
+                        <button onclick="startGame()" class="w-full py-4 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-2xl font-black text-xl shadow-lg shadow-purple-500/30 flex items-center justify-center gap-2 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                            <i data-lucide="play" class="w-6 h-6 fill-current"></i> START GAME
+                        </button>
+                    </div>
+                </div>
+            `;
+        }
+
+        function addTeam() {
+            if (state.teams.length >= 20) return;
+            const id = Math.random().toString(36).substr(2, 9);
+            const color = TEAM_COLORS[state.teams.length % TEAM_COLORS.length];
+            state.teams.push({ id, name: `Team ${state.teams.length + 1}`, score: 0, color, players: [] });
+            db.saveParticipants();
+            render();
+        }
+
+        function removeTeam(id) {
+            if (state.teams.length <= 1) return;
+            state.teams = state.teams.filter(t => t.id !== id);
+            db.saveParticipants();
+            render();
+        }
+
+        function updateTeamName(id, name) {
+            const t = state.teams.find(t => t.id === id);
+            if (t) {
+                t.name = name;
+                db.saveParticipants();
+            }
+        }
+
+        function startGame() {
+            state.view = 'game-active';
+            const participants = state.isPlayerType ? state.players : state.teams;
+            initGame(state.gameMode, participants);
+        }
+
+        function renderGameActive(container) {
+            container.innerHTML = `
+                <div class="flex flex-col animate-scale-in">
+                    <div class="flex-none w-full overflow-x-auto pb-4 pt-2 px-4 scrollbar-hide">
+                        <div class="flex gap-4 min-w-max mx-auto">
+                            ${state.activeParticipants.map((p, i) => {
+                const isCurrent = i === state.currentPlayerIndex;
+                return `
+                                    <div class="relative flex flex-col items-center p-4 rounded-2xl min-w-[120px] transition-all duration-300 ${isCurrent ? 'bg-white dark:bg-slate-800 shadow-xl shadow-purple-500/20 dark:shadow-purple-900/30 ring-4 ring-purple-400 dark:ring-purple-500 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white/80 dark:bg-slate-800/60 shadow-sm opacity-80'}">
+                                        <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg mb-2 shadow-inner" style="background-color: ${p.color}">${p.name.substring(0, 2).toUpperCase()}</div>
+                                        <h3 class="font-bold text-gray-800 dark:text-gray-200 text-sm mb-2 truncate max-w-[100px]">${p.name}</h3>
+                                        <div class="text-gray-900 dark:text-white">${getScoreDisplay(p)}</div>
+                                    </div>
+                                `;
+            }).join('')}
+                        </div>
+                    </div>
+                    <div class="flex-1 flex items-center justify-center p-4">
+                        <div id="number-pad-container" class="w-full max-w-md mx-auto p-2"></div>
+                    </div>
+                </div>
+            `;
+            renderNumberPad(document.getElementById('number-pad-container'));
+        }
+
+        function getScoreDisplay(p) {
+            if (state.gameMode === '501') return `<span class="text-4xl font-black tracking-tighter dark:text-white">${p.score}</span>`;
+            if (state.gameMode === 'Cricket') return `
+                <div class="flex flex-col items-center">
+                    <span class="text-2xl font-bold dark:text-white">${p.score}</span>
+                    <div class="flex gap-0.5 mt-1">
+                        ${[15, 16, 17, 18, 19, 20, 25].map(t => {
+                const hits = p.cricketState[t] || 0;
+                return `<div class="flex flex-col items-center w-3">
+                                <div class="h-1 w-full rounded-full ${hits >= 1 ? 'bg-green-500' : 'bg-gray-200 dark:bg-slate-700'}"></div>
+                                <div class="h-1 w-full rounded-full mt-0.5 ${hits >= 2 ? 'bg-green-500' : 'bg-gray-200 dark:bg-slate-700'}"></div>
+                                <div class="h-1 w-full rounded-full mt-0.5 ${hits >= 3 ? 'bg-green-500' : 'bg-gray-200 dark:bg-slate-700'}"></div>
+                            </div>`;
+            }).join('')}
+                    </div>
+                </div>
+            `;
+            if (state.gameMode === 'Killer') return `
+                <div class="flex flex-col items-center">
+                    <div class="flex gap-1 mb-1">
+                        ${Array.from({ length: 5 }).map((_, i) => `<div class="w-3 h-3 rounded-full ${i < p.score ? 'bg-red-500' : 'bg-gray-200 dark:bg-slate-700'}"></div>`).join('')}
+                    </div>
+                    <span class="text-xs font-bold text-gray-500 dark:text-gray-400">TARGET: ${p.killerTarget}</span>
+                </div>
+            `;
+            if (state.gameMode === 'Tic-Tac-Toe') return `
+                <div class="flex flex-wrap gap-1 w-12 justify-center">
+                    ${p.tttClaims.map(c => `<span class="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1 rounded">${c}</span>`).join('')}
+                </div>
+            `;
+            return '';
+        }
+        158
+
+        let currentMultiplier = 1;
+        function renderNumberPad(container) {
+            container.innerHTML = `
+            ${state.activeParticipants[state.currentPlayerIndex] ? `<div class="absolute -bottom- flex gap-1">
+                    ${[0, 1, 2].map(throwIdx => `<div class="w-2 h-2 rounded-full transition-colors duration-300 ${throwIdx < state.roundThrows.length ? 'bg-purple-500' : 'bg-gray-300 dark:bg-slate-600'}"></div>`).join('')}
+                </div>` : ''}
+                <div class="flex gap-3 mb-4 justify-center">
+                    <button onclick="setMultiplier(2)" id="mult-2" class="flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md ${currentMultiplier === 2 ? 'bg-pink-500 text-white shadow-pink-500/40 ring-2 ring-pink-400 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white dark:bg-slate-800 text-pink-500 dark:text-pink-400 border-2 border-pink-100 dark:border-pink-900/30'}">DOUBLE (x2)</button>
+                    <button onclick="setMultiplier(3)" id="mult-3" class="flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md ${currentMultiplier === 3 ? 'bg-purple-500 text-white shadow-purple-500/40 ring-2 ring-purple-400 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white dark:bg-slate-800 text-purple-500 dark:text-purple-400 border-2 border-purple-100 dark:border-purple-900/30'}">TRIPLE (x3)</button>
+                </div>
+                <div class="grid grid-cols-5 gap-2 sm:gap-3">
+                    ${Array.from({ length: 20 }, (_, i) => i + 1).map(num => `
+                        <button onclick="handleScore(${num}, currentMultiplier); currentMultiplier = 1; updateMultiplierUI();" class="aspect-square rounded-2xl font-bold text-xl sm:text-2xl shadow-sm flex items-center justify-center transition-all duration-200 active:scale-75 ${currentMultiplier === 1 ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-slate-200/50 dark:shadow-black/20' : currentMultiplier === 2 ? 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 border-2 border-pink-200 dark:border-pink-800' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-2 border-purple-200 dark:border-purple-800'}">${num}</button>
+                    `).join('')}
+                    <button onclick="handleScore(0, 1); currentMultiplier = 1; updateMultiplierUI();" class="col-span-2 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-lg flex items-center justify-center active:scale-95">MISS</button>
+                    <button onclick="handleScore(25, currentMultiplier); currentMultiplier = 1; updateMultiplierUI();" class="col-span-1 aspect-square rounded-2xl bg-emerald-500 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-emerald-500/30 active:scale-90">25</button>
+                    <button onclick="handleScore(50, 1); currentMultiplier = 1; updateMultiplierUI();" class="col-span-2 rounded-2xl bg-rose-500 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-rose-500/30 active:scale-95">BULL</button>
+                </div>
+            `;
+        }
+
+        function setMultiplier(v) {
+            currentMultiplier = currentMultiplier === v ? 1 : v;
+            updateMultiplierUI();
+        }
+
+        function updateMultiplierUI() {
+            const m2 = document.getElementById('mult-2');
+            const m3 = document.getElementById('mult-3');
+            if (!m2 || !m3) return;
+            m2.className = `flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md ${currentMultiplier === 2 ? 'bg-pink-500 text-white shadow-pink-500/40 ring-2 ring-pink-400 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white dark:bg-slate-800 text-pink-500 dark:text-pink-400 border-2 border-pink-100 dark:border-pink-900/30'}`;
+            m3.className = `flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md ${currentMultiplier === 3 ? 'bg-purple-500 text-white shadow-purple-500/40 ring-2 ring-purple-400 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white dark:bg-slate-800 text-purple-500 dark:text-purple-400 border-2 border-purple-100 dark:border-purple-900/30'}`;
+            renderNumberPad(document.getElementById('number-pad-container')); // Refresh grid styles based on mult
+        }
+
+        function renderModal() {
+            const modal = document.getElementById('modal-container');
+            if (!state.winner) {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                return;
+            }
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden transition-colors duration-300 my-auto animate-scale-in">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                    <div class="mb-4 inline-flex p-4 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500 dark:text-yellow-400"><i data-lucide="trophy" class="w-10 h-10"></i></div>
+                    <h2 class="text-3xl font-black text-gray-900 dark:text-white mb-1">WINNER!</h2>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6 text-lg"><span class="font-bold" style="color: ${state.winner.color}">${state.winner.name}</span> takes the crown!</p>
+                    <div id="score-card" class="w-full bg-gray-50 dark:bg-slate-700/50 rounded-2xl p-4 mb-6 border border-gray-100 dark:border-slate-600"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="rematch()" class="py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors text-sm"><i data-lucide="rotate-ccw" class="w-4.5 h-4.5"></i> Rematch</button>
+                        <button onclick="mainMenu()" class="py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors text-sm"><i data-lucide="home" class="w-4.5 h-4.5"></i> Menu</button>
+                    </div>
+                </div>
+            `;
+            renderScoreCard(document.getElementById('score-card'));
+            lucide.createIcons();
+        }
+
+        function renderScoreCard(container) {
+            const sorted = [...state.activeParticipants].sort((a, b) => {
+                if (a.id === state.winner.id) return -1;
+                if (b.id === state.winner.id) return 1;
+                return (state.gameMode === '501') ? a.score - b.score : b.score - a.score;
+            });
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Score Card</h3>
+                    <span class="text-xs font-medium px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded-full">${state.gameMode}</span>
+                </div>
+                <div class="space-y-2 mb-6">
+                    ${sorted.map((p, i) => `
+                        <div class="flex items-center p-3 rounded-xl ${p.id === state.winner.id ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30' : 'bg-white dark:bg-slate-800'}">
+                            <div class="w-6 text-center font-bold text-gray-400 text-sm mr-2">${i + 1}</div>
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 shadow-sm" style="background-color: ${p.color}">${p.name.substring(0, 2).toUpperCase()}</div>
+                            <div class="flex-1 font-bold text-gray-800 dark:text-gray-200 text-sm truncate">${p.name} ${p.id === state.winner.id ? '<i data-lucide="trophy" class="w-3 h-3 inline ml-2 text-yellow-500"></i>' : ''}</div>
+                            <div class="font-mono font-bold text-gray-900 dark:text-white">${p.score}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="shareResults(this)" class="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg transition-all active:scale-95"><i data-lucide="share-2" class="w-4.5 h-4.5"></i> Share Results</button>
+            `;
+        }
+
+        function shareResults(btn) {
+            const sorted = [...state.activeParticipants].sort((a, b) => (state.gameMode === '501') ? a.score - b.score : b.score - a.score);
+            const text = `🎯 DARTS PARTY - ${state.gameMode}\n🏆 Winner: ${state.winner.name}\n\nScores:\n${sorted.map((p, i) => `${i + 1}. ${p.name} - ${p.score}`).join('\n')}`;
+            navigator.clipboard.writeText(text).then(() => {
+                const oldText = btn.innerHTML;
+                btn.innerHTML = `<i data-lucide="check" class="w-4.5 h-4.5"></i> Shared!`;
+                btn.classList.replace('from-purple-500', 'from-green-500');
+                btn.classList.replace('to-pink-500', 'to-emerald-500');
+                lucide.createIcons();
+                setTimeout(() => {
+                    btn.innerHTML = oldText;
+                    btn.classList.replace('from-green-500', 'from-purple-500');
+                    btn.classList.replace('to-emerald-500', 'to-pink-500');
+                    lucide.createIcons();
+                }, 2000);
+            });
+        }
+
+        function rematch() {
+            initGame(state.gameMode, state.isPlayerType ? state.players : state.teams);
+            playSound('click');
+        }
+
+        function mainMenu() {
+            state.view = 'mode-select';
+            state.winner = null;
+            render();
+        }
+
+        // --- INIT ---
+        window.onload = async () => {
+            updateTheme();
+            try {
+                await db.init();
+                await db.loadParticipants();
+            } catch (e) {
+                console.error('Failed to initialize DB', e);
+            }
+            render();
+        };
+    </script>
+</body>
+
+</html>

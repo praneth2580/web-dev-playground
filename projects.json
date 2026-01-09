@@ -80,5 +80,16 @@
       "Tool",
       "Generative"
     ]
+  },
+  {
+    "name": "Dart Calculator",
+    "description": "A dart calculator.",
+    "path": "./dart-calculator/index.html",
+    "tags": [
+      "Tool",
+      "Games",
+      "Scoreboard",
+      "Dart"
+    ]
   }
 ]
