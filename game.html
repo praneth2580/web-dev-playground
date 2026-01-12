@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game - Darts Party</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <!-- Tailwind Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Shared CSS -->
+    <link rel="stylesheet" href="shared.css">
+</head>
+
+<body
+    class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 min-h-screen transition-colors duration-300">
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="p-4 flex justify-between items-center max-w-4xl mx-auto w-full relative z-10">
+            <div class="flex items-center gap-2">
+                <a href="setup.html" class="p-2 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </a>
+                <h1
+                    class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
+                    DARTS PARTY</h1>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="toggleTheme()"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Toggle theme">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                </button>
+                <button onclick="toggleSound()"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Toggle sound">
+                    <i data-lucide="volume-2" id="sound-on-icon" class="w-5 h-5 hidden"></i>
+                    <i data-lucide="volume-x" id="sound-off-icon" class="w-5 h-5"></i>
+                </button>
+                <button onclick="undoLastThrow()" id="undo-btn"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200 hidden"
+                    aria-label="Undo last throw">
+                    <i data-lucide="undo-2" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-4xl mx-auto pb-8 w-full flex-1 relative z-0">
+            <div class="flex flex-col animate-scale-in">
+                <!-- Participants List -->
+                <div class="flex-none w-full overflow-x-auto pb-4 pt-2 px-4 scrollbar-hide">
+                    <div class="flex gap-4 min-w-max mx-auto" id="participants-container"></div>
+                </div>
+
+                <!-- Number Pad (Static HTML) -->
+                <div class="flex-1 flex items-center justify-center p-4">
+                    <div class="w-full max-w-md mx-auto p-2">
+                        <!-- Current Throw Indicators -->
+                        <div id="throw-indicators" class="flex-1 flex justify-center items-center gap-1 mb-4">
+                             <!-- Populated by JS -->
+                        </div>
+
+                        <!-- Multipliers -->
+                        <div class="flex gap-3 mb-4 justify-center">
+                            <button onclick="setMultiplier(2)" id="mult-2" class="flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md bg-white dark:bg-slate-800 text-pink-500 dark:text-pink-400 border-2 border-pink-100 dark:border-pink-900/30">DOUBLE (x2)</button>
+                            <button onclick="setMultiplier(3)" id="mult-3" class="flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md bg-white dark:bg-slate-800 text-purple-500 dark:text-purple-400 border-2 border-purple-100 dark:border-purple-900/30">TRIPLE (x3)</button>
+                        </div>
+
+                        <!-- Grid -->
+                        <div class="grid grid-cols-5 gap-2 sm:gap-3" id="keypad-grid">
+                           <!-- Generated once, then static -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+         <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden transition-colors duration-300 my-auto animate-scale-in">
+            <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+            <div class="mb-4 inline-flex p-4 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500 dark:text-yellow-400"><i data-lucide="trophy" class="w-10 h-10"></i></div>
+            <h2 class="text-3xl font-black text-gray-900 dark:text-white mb-1">WINNER!</h2>
+            <p class="text-gray-500 dark:text-gray-400 mb-6 text-lg"><span class="font-bold" id="winner-name"></span> takes the crown!</p>
+            <div id="score-card" class="w-full bg-gray-50 dark:bg-slate-700/50 rounded-2xl p-4 mb-6 border border-gray-100 dark:border-slate-600"></div>
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="rematch()" class="py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors text-sm"><i data-lucide="rotate-ccw" class="w-4.5 h-4.5"></i> Rematch</button>
+                <button onclick="mainMenu()" class="py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors text-sm"><i data-lucide="home" class="w-4.5 h-4.5"></i> Menu</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Templates -->
+    <template id="participant-card-template">
+        <div class="relative flex flex-col items-center p-4 rounded-2xl min-w-[120px] transition-all duration-300 participant-card">
+            <div class="w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg mb-2 shadow-inner participant-avatar"></div>
+            <h3 class="font-bold text-gray-800 dark:text-gray-200 text-sm mb-2 truncate max-w-[100px] participant-name"></h3>
+            <div class="text-gray-900 dark:text-white participant-score"></div>
+        </div>
+    </template>
+    
+    <template id="keypad-btn-template">
+        <button class="aspect-square rounded-2xl font-bold text-xl sm:text-2xl shadow-sm flex items-center justify-center transition-all duration-200 active:scale-75 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-slate-200/50 dark:shadow-black/20 keypad-btn"></button>
+    </template>
+
+    <script src="shared.js"></script>
+    <script>
+        let gameState = null;
+        let currentMultiplier = 1;
+        let keypadGenerated = false;
+
+        function loadGameState() {
+            const saved = getGameState();
+            if (!saved) {
+                window.location.href = 'index.html';
+                return;
+            }
+            gameState = saved;
+        }
+
+        function saveCurrentGameState() {
+            saveGameState(gameState);
+        }
+        
+        // Generate keypad buttons once on load
+        function generateKeypad() {
+            if (keypadGenerated) return;
+            const grid = document.getElementById('keypad-grid');
+            const template = document.getElementById('keypad-btn-template');
+            
+            // 1-20
+            for (let i = 1; i <= 20; i++) {
+                const clone = template.content.cloneNode(true);
+                const btn = clone.querySelector('button');
+                btn.textContent = i;
+                btn.dataset.value = i; // Store value
+                btn.onclick = () => {
+                    handleScore(i, currentMultiplier);
+                    resetMultiplier();
+                };
+                grid.appendChild(clone);
+            }
+            
+            // MISS
+            const missBtn = document.createElement('button');
+            missBtn.className = "col-span-2 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-lg flex items-center justify-center active:scale-95";
+            missBtn.textContent = "MISS";
+            missBtn.onclick = () => { handleScore(0, 1); resetMultiplier(); };
+            grid.appendChild(missBtn);
+            
+            // 25
+            const bull25 = document.createElement('button');
+            bull25.className = "col-span-1 aspect-square rounded-2xl bg-emerald-500 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-emerald-500/30 active:scale-90";
+            bull25.textContent = "25";
+            bull25.onclick = () => { handleScore(25, currentMultiplier); resetMultiplier(); }; // Outer bull
+            grid.appendChild(bull25);
+            
+            // BULL (50)
+            const bull50 = document.createElement('button');
+            bull50.className = "col-span-2 rounded-2xl bg-rose-500 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-rose-500/30 active:scale-95";
+            bull50.textContent = "BULL";
+            bull50.onclick = () => { handleScore(50, 1); resetMultiplier(); }; // Inner bull usually 50
+            grid.appendChild(bull50);
+            
+            keypadGenerated = true;
+        }
+        
+        function resetMultiplier() {
+             currentMultiplier = 1;
+             updateMultiplierUI();
+        }
+
+        function renderParticipants() {
+            const container = document.getElementById('participants-container');
+            if (!container || !gameState) return;
+            
+            // Check if we need to rebuild structure
+            if (container.children.length !== gameState.activeParticipants.length) {
+                while (container.firstChild) container.removeChild(container.firstChild);
+                const template = document.getElementById('participant-card-template');
+                
+                gameState.activeParticipants.forEach((p, i) => {
+                    const clone = template.content.cloneNode(true);
+                    const card = clone.querySelector('.participant-card');
+                    card.id = `p-card-${i}`;
+                    
+                    const avatar = clone.querySelector('.participant-avatar');
+                    avatar.style.backgroundColor = p.color;
+                    avatar.textContent = p.name.substring(0, 2).toUpperCase();
+                    
+                    const name = clone.querySelector('.participant-name');
+                    name.textContent = p.name;
+                    
+                    const score = clone.querySelector('.participant-score');
+                    score.id = `p-score-${i}`; // ID for updates
+                    
+                    container.appendChild(clone);
+                });
+            }
+            
+            // Update styles and scores
+            gameState.activeParticipants.forEach((p, i) => {
+                const card = document.getElementById(`p-card-${i}`);
+                const isCurrent = i === gameState.currentPlayerIndex;
+                
+                // Update active state classes
+                if (isCurrent) {
+                    card.className = "relative flex flex-col items-center p-4 rounded-2xl min-w-[120px] transition-all duration-300 participant-card bg-white dark:bg-slate-800 shadow-xl shadow-purple-500/20 dark:shadow-purple-900/30 ring-4 ring-purple-400 dark:ring-purple-500 ring-offset-2 dark:ring-offset-slate-900";
+                } else {
+                    card.className = "relative flex flex-col items-center p-4 rounded-2xl min-w-[120px] transition-all duration-300 participant-card bg-white/80 dark:bg-slate-800/60 shadow-sm opacity-80";
+                }
+                
+                // Update score content
+                const scoreEl = document.getElementById(`p-score-${i}`);
+                updateScoreDisplay(scoreEl, p);
+            });
+        }
+        
+        function updateScoreDisplay(el, p) {
+            while (el.firstChild) el.removeChild(el.firstChild);
+            
+            if (gameState.gameMode === '501') {
+                const span = document.createElement('span');
+                span.className = "text-4xl font-black tracking-tighter dark:text-white";
+                span.textContent = p.score;
+                el.appendChild(span);
+            } else if (gameState.gameMode === 'Cricket') {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex flex-col items-center";
+                
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = "text-2xl font-bold dark:text-white";
+                scoreSpan.textContent = p.score;
+                wrapper.appendChild(scoreSpan);
+                
+                const dotsContainer = document.createElement('div');
+                dotsContainer.className = "flex gap-0.5 mt-1";
+                
+                [15, 16, 17, 18, 19, 20, 25].forEach(t => {
+                    const hits = p.cricketState[t] || 0;
+                    const col = document.createElement('div');
+                    col.className = "flex flex-col items-center w-3";
+                    
+                    for (let i = 1; i <= 3; i++) {
+                         const dot = document.createElement('div');
+                         dot.className = `h-1 w-full rounded-full ${i > 1 ? 'mt-0.5' : ''} ${hits >= i ? 'bg-green-500' : 'bg-gray-200 dark:bg-slate-700'}`;
+                         col.appendChild(dot);
+                    }
+                    dotsContainer.appendChild(col);
+                });
+                wrapper.appendChild(dotsContainer);
+                el.appendChild(wrapper);
+            } else if (gameState.gameMode === 'Killer') {
+                 const wrapper = document.createElement('div');
+                 wrapper.className = "flex flex-col items-center";
+                 const lives = document.createElement('div');
+                 lives.className = "flex gap-1 mb-1";
+                 for(let i=0; i<5; i++) {
+                     const dot = document.createElement('div');
+                     dot.className = `w-3 h-3 rounded-full ${i < p.score ? 'bg-red-500' : 'bg-gray-200 dark:bg-slate-700'}`;
+                     lives.appendChild(dot);
+                 }
+                 const target = document.createElement('span');
+                 target.className = "text-xs font-bold text-gray-500 dark:text-gray-400";
+                 target.textContent = `TARGET: ${p.killerTarget}`;
+                 
+                 wrapper.appendChild(lives);
+                 wrapper.appendChild(target);
+                 el.appendChild(wrapper);
+            } else if (gameState.gameMode === 'Tic-Tac-Toe') {
+                 const wrapper = document.createElement('div');
+                 wrapper.className = "flex flex-wrap gap-1 w-12 justify-center";
+                 p.tttClaims.forEach(c => {
+                     const chip = document.createElement('span');
+                     chip.className = "text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1 rounded";
+                     chip.textContent = c;
+                     wrapper.appendChild(chip);
+                 });
+                 el.appendChild(wrapper);
+            }
+        }
+
+        function updateThrowIndicators() {
+             const container = document.getElementById('throw-indicators');
+             while (container.firstChild) container.removeChild(container.firstChild);
+             
+             if (!gameState.activeParticipants[gameState.currentPlayerIndex]) return;
+             
+             for (let i = 0; i < 3; i++) {
+                 const div = document.createElement('div');
+                 const isThrown = i < gameState.roundThrows.length;
+                 div.className = `rounded-full transition-colors duration-300 p-2 ${isThrown ? 'bg-purple-500' : 'bg-gray-300 dark:bg-slate-600'}`;
+                 const icon = document.createElement('i');
+                 icon.setAttribute('data-lucide', 'minus');
+                 icon.className = 'w-4 h-4 text-white';
+                 div.appendChild(icon);
+                 container.appendChild(div);
+             }
+             if (window.lucide) window.lucide.createIcons();
+        }
+
+        function setMultiplier(v) {
+            currentMultiplier = currentMultiplier === v ? 1 : v;
+            updateMultiplierUI();
+        }
+
+        function updateMultiplierUI() {
+            const m2 = document.getElementById('mult-2');
+            const m3 = document.getElementById('mult-3');
+            const grid = document.getElementById('keypad-grid');
+            
+            // Toggle classes
+            m2.className = `flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md ${currentMultiplier === 2 ? 'bg-pink-500 text-white shadow-pink-500/40 ring-2 ring-pink-400 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white dark:bg-slate-800 text-pink-500 dark:text-pink-400 border-2 border-pink-100 dark:border-pink-900/30'}`;
+            m3.className = `flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md ${currentMultiplier === 3 ? 'bg-purple-500 text-white shadow-purple-500/40 ring-2 ring-purple-400 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white dark:bg-slate-800 text-purple-500 dark:text-purple-400 border-2 border-purple-100 dark:border-purple-900/30'}`;
+            
+            // Update buttons styling
+            const buttons = grid.querySelectorAll('button.keypad-btn'); // Only 1-20
+            buttons.forEach(btn => {
+                if (currentMultiplier === 1) {
+                    btn.className = "aspect-square rounded-2xl font-bold text-xl sm:text-2xl shadow-sm flex items-center justify-center transition-all duration-200 active:scale-75 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-slate-200/50 dark:shadow-black/20 keypad-btn";
+                } else if (currentMultiplier === 2) {
+                    btn.className = "aspect-square rounded-2xl font-bold text-xl sm:text-2xl shadow-sm flex items-center justify-center transition-all duration-200 active:scale-75 bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 border-2 border-pink-200 dark:border-pink-800 keypad-btn";
+                } else {
+                    btn.className = "aspect-square rounded-2xl font-bold text-xl sm:text-2xl shadow-sm flex items-center justify-center transition-all duration-200 active:scale-75 bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-2 border-purple-200 dark:border-purple-800 keypad-btn";
+                }
+            });
+        }
+
+        function handleScore(basePoints, multiplier) {
+            if (!gameState || gameState.winner) return;
+            const points = basePoints * multiplier;
+            const previousState = JSON.parse(JSON.stringify({ ...gameState, history: [] }));
+
+            let participants = JSON.parse(JSON.stringify(gameState.activeParticipants));
+            let winner = null;
+            let turnEnded = false;
+
+            if (gameState.gameMode === '501') {
+                const currentScore = participants[gameState.currentPlayerIndex].score;
+                const newScore = currentScore - points;
+                if (newScore === 0) {
+                    participants[gameState.currentPlayerIndex].score = 0;
+                    winner = participants[gameState.currentPlayerIndex];
+                } else if (newScore > 0) {
+                    participants[gameState.currentPlayerIndex].score = newScore;
+                }
+            } else if (gameState.gameMode === 'Cricket') {
+                const target = (basePoints === 50 || basePoints === 25) ? 25 : basePoints;
+                const validTargets = [15, 16, 17, 18, 19, 20, 25];
+                if (validTargets.includes(target)) {
+                    let hitsToApply = multiplier;
+                    let currentHits = participants[gameState.currentPlayerIndex].cricketState[target];
+                    if (currentHits < 3) {
+                        const used = Math.min(3 - currentHits, hitsToApply);
+                        currentHits += used;
+                        hitsToApply -= used;
+                        participants[gameState.currentPlayerIndex].cricketState[target] = currentHits;
+                    }
+                    if (hitsToApply > 0) {
+                        const anyoneOpen = participants.some((p, i) => i !== gameState.currentPlayerIndex && p.cricketState[target] < 3);
+                        if (anyoneOpen) participants[gameState.currentPlayerIndex].score += target * hitsToApply;
+                    }
+                    if (validTargets.every(t => participants[gameState.currentPlayerIndex].cricketState[t] >= 3)) {
+                        const highestScore = Math.max(...participants.map(p => p.score));
+                        if (participants[gameState.currentPlayerIndex].score >= highestScore) winner = participants[gameState.currentPlayerIndex];
+                    }
+                }
+            } else if (gameState.gameMode === 'Killer') {
+                const targetOwnerIndex = participants.findIndex(p => p.killerTarget === basePoints);
+                if (targetOwnerIndex !== -1) {
+                    if (targetOwnerIndex === gameState.currentPlayerIndex) {
+                        if (participants[targetOwnerIndex].score < 5) participants[targetOwnerIndex].score += 1;
+                    } else if (participants[targetOwnerIndex].score > 0) {
+                        participants[targetOwnerIndex].score -= 1;
+                    }
+                }
+                const alive = participants.filter(p => p.score > 0);
+                if (alive.length === 1) winner = alive[0];
+            } else if (gameState.gameMode === 'Tic-Tac-Toe') {
+                if (basePoints >= 1 && basePoints <= 9) {
+                    if (!participants.some(p => p.tttClaims.includes(basePoints))) {
+                        participants[gameState.currentPlayerIndex].tttClaims.push(basePoints);
+                        if (TTT_WINS.some(c => c.every(n => participants[gameState.currentPlayerIndex].tttClaims.includes(n)))) {
+                            winner = participants[gameState.currentPlayerIndex];
+                        }
+                    }
+                }
+            }
+
+            gameState.activeParticipants = participants;
+            gameState.roundThrows.push(points);
+
+            if (gameState.roundThrows.length >= 3 || winner) {
+                turnEnded = true;
+                if (!winner) {
+                    const totalPlayers = gameState.activeParticipants.length;
+                    gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % totalPlayers;
+                    
+                    if (gameState.gameMode === 'Killer') {
+                        let attempts = 0;
+                        while (gameState.activeParticipants[gameState.currentPlayerIndex].score <= 0 && attempts < totalPlayers) {
+                            gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % totalPlayers;
+                            attempts++;
+                        }
+                    }
+                }
+            }
+
+            if (winner) {
+                gameState.winner = winner;
+                playSound('win');
+                startConfetti();
+                db.saveGame({
+                    mode: gameState.gameMode,
+                    participants: gameState.activeParticipants,
+                    winner: winner
+                });
+            } else if (points >= 60 || basePoints === 50) {
+                playSound('milestone');
+            } else {
+                playSound('click');
+            }
+
+            gameState.history.push(previousState);
+            if (gameState.history.length > 5) gameState.history.shift();
+            if (turnEnded) gameState.roundThrows = [];
+            
+            saveCurrentGameState();
+            render();
+        }
+
+        function undoLastThrow() {
+            if (!gameState || gameState.history.length === 0) return;
+            const prev = gameState.history.pop();
+            Object.assign(gameState, prev);
+            saveCurrentGameState();
+            render();
+        }
+
+        function render() {
+            renderParticipants();
+            updateThrowIndicators();
+            updateUndoButton();
+            renderModal();
+        }
+
+        function updateUndoButton() {
+            const undoBtn = document.getElementById('undo-btn');
+            if (undoBtn) {
+                if (!gameState || gameState.winner !== null) {
+                    undoBtn.classList.add('hidden');
+                } else {
+                    undoBtn.classList.remove('hidden');
+                }
+            }
+        }
+
+        function renderModal() {
+            const modal = document.getElementById('modal-container');
+            if (!gameState || !gameState.winner) {
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+                return;
+            }
+            if (!modal) return;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            
+            const winnerName = document.getElementById('winner-name');
+            winnerName.textContent = gameState.winner.name;
+            winnerName.style.color = gameState.winner.color;
+            
+            const scoreCard = document.getElementById('score-card');
+            while (scoreCard.firstChild) scoreCard.removeChild(scoreCard.firstChild);
+            
+            const header = document.createElement('div');
+            header.className = "flex justify-between items-center mb-4 px-2";
+            
+            const h3 = document.createElement('h3');
+            h3.className = "text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider";
+            h3.textContent = "Score Card";
+            header.appendChild(h3);
+            const span = document.createElement('span');
+            span.className = "text-xs font-medium px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded-full";
+            span.textContent = gameState.gameMode;
+            header.appendChild(span);
+            
+            scoreCard.appendChild(header);
+            
+            const list = document.createElement('div');
+            list.className = "space-y-2 mb-6";
+            
+            const sorted = [...gameState.activeParticipants].sort((a, b) => {
+                if (a.id === gameState.winner.id) return -1;
+                if (b.id === gameState.winner.id) return 1;
+                return (gameState.gameMode === '501') ? a.score - b.score : b.score - a.score;
+            });
+            
+            sorted.forEach((p, i) => {
+                const row = document.createElement('div');
+                row.className = `flex items-center p-3 rounded-xl ${p.id === gameState.winner.id ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30' : 'bg-white dark:bg-slate-800'}`;
+                
+                const rank = document.createElement('div');
+                rank.className = "w-6 text-center font-bold text-gray-400 text-sm mr-2";
+                rank.textContent = i + 1;
+                row.appendChild(rank);
+                
+                const av = document.createElement('div');
+                av.className = "w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 shadow-sm";
+                av.style.backgroundColor = p.color;
+                av.textContent = p.name.substring(0, 2).toUpperCase();
+                row.appendChild(av);
+                
+                const nameDiv = document.createElement('div');
+                nameDiv.className = "flex-1 font-bold text-gray-800 dark:text-gray-200 text-sm truncate";
+                nameDiv.textContent = p.name;
+                if (p.id === gameState.winner.id) {
+                     const icon = document.createElement('i');
+                     icon.setAttribute('data-lucide', 'trophy');
+                     icon.className = "w-3 h-3 inline ml-2 text-yellow-500";
+                     nameDiv.appendChild(icon);
+                }
+                row.appendChild(nameDiv);
+                
+                const s = document.createElement('div');
+                s.className = "font-mono font-bold text-gray-900 dark:text-white";
+                s.textContent = p.score;
+                row.appendChild(s);
+                
+                list.appendChild(row);
+            });
+            scoreCard.appendChild(list);
+            
+            const shareBtn = document.createElement('button');
+            shareBtn.className = "w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg transition-all active:scale-95";
+            const shareIcon = document.createElement('i');
+            shareIcon.setAttribute('data-lucide', 'share-2');
+            shareIcon.className = "w-4.5 h-4.5";
+            shareBtn.appendChild(shareIcon);
+            shareBtn.appendChild(document.createTextNode(" Share Results"));
+            
+            shareBtn.onclick = () => shareResults(shareBtn);
+            scoreCard.appendChild(shareBtn);
+
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function shareResults(btn) {
+            if (!gameState) return;
+            const sorted = [...gameState.activeParticipants].sort((a, b) => (gameState.gameMode === '501') ? a.score - b.score : b.score - a.score);
+            const text = `🎯 DARTS PARTY - ${gameState.gameMode}\n🏆 Winner: ${gameState.winner.name}\n\nScores:\n${sorted.map((p, i) => `${i + 1}. ${p.name} - ${p.score}`).join('\n')}`;
+            navigator.clipboard.writeText(text).then(() => {
+                while (btn.firstChild) btn.removeChild(btn.firstChild);
+                
+                const icon = document.createElement('i');
+                icon.setAttribute('data-lucide', 'check');
+                icon.className = "w-4.5 h-4.5";
+                btn.appendChild(icon);
+                btn.appendChild(document.createTextNode(" Shared!"));
+                
+                btn.classList.replace('from-purple-500', 'from-green-500');
+                btn.classList.replace('to-pink-500', 'to-emerald-500');
+                if (window.lucide) window.lucide.createIcons();
+                
+                setTimeout(() => {
+                    while (btn.firstChild) btn.removeChild(btn.firstChild);
+                    const icon = document.createElement('i');
+                    icon.setAttribute('data-lucide', 'share-2');
+                    icon.className = "w-4.5 h-4.5";
+                    btn.appendChild(icon);
+                    btn.appendChild(document.createTextNode(" Share Results"));
+                    
+                    btn.classList.replace('from-green-500', 'from-purple-500');
+                    btn.classList.replace('to-emerald-500', 'to-pink-500');
+                    if (window.lucide) window.lucide.createIcons();
+                }, 2000);
+            });
+        }
+
+        function rematch() {
+            if (!gameState) return;
+            const state = getState();
+            
+            gameState = {
+                gameMode: gameState.gameMode,
+                activeParticipants: gameState.activeParticipants.map((p, i) => ({
+                    ...p,
+                    score: gameState.gameMode === '501' ? 501 : gameState.gameMode === 'Killer' ? INITIAL_LIVES : 0,
+                    cricketState: gameState.gameMode === 'Cricket' ? { 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 25: 0 } : undefined,
+                    killerTarget: gameState.gameMode === 'Killer' ? i + 1 : undefined,
+                    tttClaims: [],
+                })),
+                currentPlayerIndex: 0,
+                winner: null,
+                history: [],
+                roundThrows: [],
+                isPlayerType: state.isPlayerType
+            };
+            
+            saveCurrentGameState();
+            playSound('click');
+            render();
+        }
+
+        function mainMenu() {
+            clearGameState();
+            window.location.href = 'index.html';
+        }
+
+        window.onload = async () => {
+            updateTheme();
+            updateSoundIcons();
+            try {
+                await db.init();
+                loadGameState();
+                generateKeypad();
+                render();
+            } catch (e) {
+                console.error('Failed to initialize', e);
+            }
+            if (window.lucide) window.lucide.createIcons();
+        };
+    </script>
+</body>
+
+</html>

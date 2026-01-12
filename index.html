@@ -4,156 +4,146 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Web Dev Playground - Interactive Projects & Tools</title>
-    <meta name="description"
-        content="A collection of interactive web development projects, tools, and games built with vanilla JavaScript, HTML5 Canvas, and modern CSS. Features include a Logic Gate Simulator, Coupon Generator, Stock Scout, and more.">
-    <meta name="keywords"
-        content="web development, javascript projects, html5 canvas, game development, productivity tools, open source, portfolio">
-    <meta name="author" content="Web Dev Playground">
-
-    <!-- Open Graph / Facebook -->
-    <meta property="og:type" content="website">
-    <meta property="og:url" content="https://praneth2580.github.io/web-dev-playground/">
-    <meta property="og:title" content="Web Dev Playground - Interactive Projects & Tools">
-    <meta property="og:description"
-        content="Explore a collection of interactive web projects including games, visualizations, and productivity tools. Built with modern web technologies.">
-    <meta property="og:image" content="https://praneth2580.github.io/web-dev-playground/coupon-sheet/favicon.svg">
-
-    <!-- Twitter -->
-    <meta property="twitter:card" content="summary_large_image">
-    <meta property="twitter:url" content="https://praneth2580.github.io/web-dev-playground/">
-    <meta property="twitter:title" content="Web Dev Playground - Interactive Projects & Tools">
-    <meta property="twitter:description"
-        content="Explore a collection of interactive web projects including games, visualizations, and productivity tools.">
-
-    <link rel="canonical" href="https://praneth2580.github.io/web-dev-playground/">
-    <link rel="stylesheet" href="style.css">
-    <!-- Google Fonts for premium typography -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;700&display=swap" rel="stylesheet">
-    <link rel="icon" type="image/svg+xml" href="./favicon.svg">
+    <title>Darts Party - The Ultimate Darts Scorer</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <!-- Tailwind Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Shared CSS -->
+    <link rel="stylesheet" href="shared.css">
 </head>
 
-<body>
-    <header>
-        <div class="header-content">
-            <h1>Web Dev Playground</h1>
-            <p>A collection of experiments, tools, and games built with vanilla web technologies.</p>
-        </div>
-    </header>
+<body
+    class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 min-h-screen transition-colors duration-300">
+    
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="p-4 flex justify-between items-center max-w-4xl mx-auto w-full relative z-10">
+            <div class="flex items-center gap-2">
+                <h1
+                    class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
+                    DARTS PARTY</h1>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="toggleTheme()"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Toggle theme">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                </button>
+                <button onclick="toggleSound()"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Toggle sound">
+                    <i data-lucide="volume-2" id="sound-on-icon" class="w-5 h-5 hidden"></i>
+                    <i data-lucide="volume-x" id="sound-off-icon" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
 
-    <main>
-        <div id="project-grid" class="project-grid">
-            <!-- Projects will be injected here -->
-        </div>
-    </main>
+        <!-- Main Content -->
+        <main class="max-w-4xl mx-auto pb-8 w-full flex-1 relative z-0">
+            <div class="pt-8 animate-fade-in">
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-black text-gray-900 dark:text-white mb-2">Let's Play Darts!</h2>
+                    <p class="text-gray-500 dark:text-gray-400">Choose a game mode to get the party started.</p>
+                </div>
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 max-w-2xl mx-auto">
+                    <!-- 501 Mode -->
+                    <a href="setup.html?mode=501" class="relative overflow-hidden rounded-3xl p-6 text-left h-40 flex flex-col justify-between bg-gradient-to-br from-blue-400 to-indigo-500 shadow-blue-500/40 shadow-lg text-white dark:brightness-90 dark:hover:brightness-100 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                        <div class="absolute top-0 right-0 p-4 opacity-20 transform rotate-12 scale-150">
+                            <i data-lucide="target" style="width: 80px; height: 80px;"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="bg-white/20 w-fit p-2 rounded-xl mb-3 backdrop-blur-sm">
+                                <i data-lucide="target" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-2xl font-black tracking-tight">501</h3>
+                            <p class="text-white/90 font-medium text-sm mt-1">Race to zero! Standard rules.</p>
+                        </div>
+                    </a>
 
-    <footer>
-        <p>Built with <span class="heart">♥</span> by <a href="https://github.com/praneth2580"
-                target="_blank">MrSomething</a></p>
-    </footer>
+                    <!-- Cricket Mode -->
+                    <a href="setup.html?mode=Cricket" class="relative overflow-hidden rounded-3xl p-6 text-left h-40 flex flex-col justify-between bg-gradient-to-br from-green-400 to-emerald-600 shadow-green-500/40 shadow-lg text-white dark:brightness-90 dark:hover:brightness-100 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                        <div class="absolute top-0 right-0 p-4 opacity-20 transform rotate-12 scale-150">
+                            <i data-lucide="hash" style="width: 80px; height: 80px;"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="bg-white/20 w-fit p-2 rounded-xl mb-3 backdrop-blur-sm">
+                                <i data-lucide="hash" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-2xl font-black tracking-tight">Cricket</h3>
+                            <p class="text-white/90 font-medium text-sm mt-1">Close numbers 15-20 & Bull.</p>
+                        </div>
+                    </a>
 
-    <div id="loader" class="loader">
-        <div class="loader-content">
-            <div id="loader-emoji" class="loader-emoji">🐹</div>
-            <p id="loader-text">Initializing...</p>
-        </div>
+                    <!-- Killer Mode -->
+                    <a href="setup.html?mode=Killer" class="relative overflow-hidden rounded-3xl p-6 text-left h-40 flex flex-col justify-between bg-gradient-to-br from-red-400 to-rose-600 shadow-red-500/40 shadow-lg text-white dark:brightness-90 dark:hover:brightness-100 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                        <div class="absolute top-0 right-0 p-4 opacity-20 transform rotate-12 scale-150">
+                            <i data-lucide="skull" style="width: 80px; height: 80px;"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="bg-white/20 w-fit p-2 rounded-xl mb-3 backdrop-blur-sm">
+                                <i data-lucide="skull" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-2xl font-black tracking-tight">Killer</h3>
+                            <p class="text-white/90 font-medium text-sm mt-1">Take lives from opponents!</p>
+                        </div>
+                    </a>
+
+                    <!-- Tic-Tac-Toe Mode -->
+                    <a href="setup.html?mode=Tic-Tac-Toe" class="relative overflow-hidden rounded-3xl p-6 text-left h-40 flex flex-col justify-between bg-gradient-to-br from-orange-400 to-amber-500 shadow-orange-500/40 shadow-lg text-white dark:brightness-90 dark:hover:brightness-100 transition-all hover:scale-[1.02] active:scale-[0.98]">
+                        <div class="absolute top-0 right-0 p-4 opacity-20 transform rotate-12 scale-150">
+                            <i data-lucide="box" style="width: 80px; height: 80px;"></i>
+                        </div>
+                        <div class="relative z-10">
+                            <div class="bg-white/20 w-fit p-2 rounded-xl mb-3 backdrop-blur-sm">
+                                <i data-lucide="box" class="w-6 h-6"></i>
+                            </div>
+                            <h3 class="text-2xl font-black tracking-tight">Tic-Tac-Toe</h3>
+                            <p class="text-white/90 font-medium text-sm mt-1">Claim squares, get 3 in a row.</p>
+                        </div>
+                    </a>
+                </div>
+                <div class="flex justify-center mt-8 px-4">
+                    <a href="history.html" class="flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm hover:shadow-md transition-all text-gray-700 dark:text-gray-200 font-bold">
+                        <i data-lucide="history" class="w-5 h-5"></i>
+                        View Game History
+                    </a>
+                </div>
+            </div>
+        </main>
     </div>
 
+    <script src="shared.js"></script>
     <script>
-        const funnyLoadingStates = [
-            { text: "Feeding the hamsters...", emoji: "🐹" },
-            { text: "Aligning divs...", emoji: "📐" },
-            { text: "Compiling spaghetti code...", emoji: "🍝" },
-            { text: "Centering things vertically...", emoji: "↕️" },
-            { text: "Debugging the debugger...", emoji: "🐛" },
-            { text: "Asking Stack Overflow...", emoji: "🤔" },
-            { text: "Generating excuses...", emoji: "📝" },
-            { text: "Downloading more RAM...", emoji: "💾" },
-            { text: "Convincing the server...", emoji: "🥺" },
-            { text: "Pixel peeping...", emoji: "🧐" }
-        ];
-
-        function cycleLoaderText() {
-            const textElement = document.getElementById('loader-text');
-            const emojiElement = document.getElementById('loader-emoji');
-            let index = 0;
-
-            // Set initial state
-            textElement.innerText = funnyLoadingStates[0].text;
-            emojiElement.innerText = funnyLoadingStates[0].emoji;
-
-            return setInterval(() => {
-                index = (index + 1) % funnyLoadingStates.length;
-
-                // Fade out
-                textElement.style.opacity = 0;
-                emojiElement.style.transform = "scale(0.8) rotate(-10deg)";
-                emojiElement.style.opacity = 0;
-
-                setTimeout(() => {
-                    // Update content
-                    textElement.innerText = funnyLoadingStates[index].text;
-                    emojiElement.innerText = funnyLoadingStates[index].emoji;
-
-                    // Fade in
-                    textElement.style.opacity = 1;
-                    emojiElement.style.transform = "scale(1) rotate(0deg)";
-                    emojiElement.style.opacity = 1;
-                }, 200);
-            }, 2000);
-        }
-
-        async function loadProjects() {
-            const loader = document.getElementById('loader');
-            const intervalId = cycleLoaderText();
-
-            // Minimum load time for effect
-            const minLoadTime = new Promise(resolve => setTimeout(resolve, 2500));
-
+        // Init logic only, no rendering
+        window.onload = async () => {
+            updateTheme();
+            updateSoundIcons();
             try {
-                const [response] = await Promise.all([
-                    fetch('projects.json'),
-                    minLoadTime
-                ]);
-
-                const projects = await response.json();
-                const grid = document.getElementById('project-grid');
-
-                projects.forEach((project, index) => {
-                    const card = document.createElement('a');
-                    card.href = project.path;
-                    card.className = 'project-card';
-                    card.style.animationDelay = `${index * 100}ms`;
-
-                    const tagsHtml = project.tags
-                        ? `<div class="tags">${project.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}</div>`
-                        : '';
-
-                    card.innerHTML = `
-                        <div class="card-content">
-                            <h2>${project.name}</h2>
-                            <p>${project.description}</p>
-                            ${tagsHtml}
-                        </div>
-                        <div class="card-arrow">→</div>
-                    `;
-                    grid.appendChild(card);
-                });
-
-                // Hide loader
-                clearInterval(intervalId);
-                loader.classList.add('hidden');
-            } catch (error) {
-                console.error('Error loading projects:', error);
-                clearInterval(intervalId);
-                document.getElementById('loader-text').innerText = "Failed to load projects. (Is the server running?)";
-                document.getElementById('loader-text').style.color = "#ef4444";
+                await db.init();
+                await db.loadParticipants();
+            } catch (e) {
+                console.error('Failed to initialize DB', e);
             }
-        }
-
-        loadProjects();
+            if (window.lucide) window.lucide.createIcons();
+        };
     </script>
 </body>
 

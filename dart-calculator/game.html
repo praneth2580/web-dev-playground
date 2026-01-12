@@ -1,0 +1,869 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game - Darts Party</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <!-- Tailwind Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Shared CSS -->
+    <link rel="stylesheet" href="shared.css">
+</head>
+
+<body
+    class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 min-h-screen transition-colors duration-300">
+    <canvas id="confetti-canvas" class="fixed inset-0 pointer-events-none z-50 hidden"></canvas>
+
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="p-4 flex justify-between items-center max-w-4xl mx-auto w-full relative z-10">
+            <div class="flex items-center gap-2">
+                <a href="setup.html" class="p-2 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </a>
+                <h1
+                    class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
+                    DARTS PARTY</h1>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="toggleTheme()"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Toggle theme">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                </button>
+                <button onclick="toggleSound()"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Toggle sound">
+                    <i data-lucide="volume-2" id="sound-on-icon" class="w-5 h-5 hidden"></i>
+                    <i data-lucide="volume-x" id="sound-off-icon" class="w-5 h-5"></i>
+                </button>
+                <button onclick="undoLastThrow()" id="undo-btn"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Undo last throw">
+                    <i data-lucide="undo-2" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-7xl mx-auto pb-8 w-full flex-1 relative z-0 px-4">
+            <div class="flex flex-col lg:flex-row gap-6 animate-scale-in h-full">
+                <!-- Left Side: Participants (Desktop) / Top (Mobile) -->
+                <div class="flex-none lg:w-80 xl:w-96">
+                    <div class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl p-4 lg:h-[calc(100vh-12rem)] flex flex-col">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-gray-800 dark:text-white text-lg">Participants</h3>
+                            <button onclick="toggleScoreLog()" id="score-log-toggle" class="lg:hidden p-2 rounded-full bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors text-gray-700 dark:text-gray-200">
+                                <i data-lucide="list" class="w-5 h-5"></i>
+                            </button>
+                        </div>
+                        <div class="flex-1 overflow-y-auto scrollbar-hide" id="participants-container">
+                            <!-- Participants will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Center: Number Pad -->
+                <div class="flex-1 flex items-center justify-center min-w-0">
+                    <div id="number-pad-container" class="w-full max-w-2xl mx-auto p-2"></div>
+                </div>
+
+                <!-- Right Side: Score Log (Desktop only) -->
+                <div class="hidden lg:block flex-none w-80">
+                    <div id="score-log-panel" class="bg-white dark:bg-slate-800 rounded-3xl shadow-xl h-[calc(100vh-12rem)] flex flex-col border border-gray-200 dark:border-slate-700">
+                        <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-slate-700">
+                            <h3 class="font-bold text-gray-800 dark:text-white">Score Log</h3>
+                        </div>
+                        <div id="score-log-content" class="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
+                            <!-- Throws will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mobile Score Log (Fixed bottom) -->
+                <div class="lg:hidden fixed bottom-4 right-4 z-40">
+                    <div id="score-log-panel-mobile" class="hidden bg-white dark:bg-slate-800 rounded-2xl shadow-2xl w-80 max-h-96 flex flex-col border border-gray-200 dark:border-slate-700">
+                        <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-slate-700">
+                            <h3 class="font-bold text-gray-800 dark:text-white">Score Log</h3>
+                            <button onclick="toggleScoreLog()" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                <i data-lucide="x" class="w-4 h-4"></i>
+                            </button>
+                        </div>
+                        <div id="score-log-content-mobile" class="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide">
+                            <!-- Throws will be rendered here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modals -->
+    <div id="modal-container"
+        class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/60 backdrop-blur-sm overflow-y-auto">
+    </div>
+
+    <script src="shared.js"></script>
+    <script>
+        let gameState = null;
+        let currentMultiplier = 1;
+
+        function loadGameState() {
+            const saved = getGameState();
+            if (!saved) {
+                // Redirect to setup if no game state
+                window.location.href = 'index.html';
+                return;
+            }
+            gameState = saved;
+        }
+
+        function saveCurrentGameState() {
+            saveGameState(gameState);
+        }
+
+        function renderParticipants() {
+            const container = document.getElementById('participants-container');
+            if (!container || !gameState) return;
+            
+            // Clear container
+            while (container.firstChild) container.removeChild(container.firstChild);
+            
+            gameState.activeParticipants.forEach((p, i) => {
+                const isCurrent = i === gameState.currentPlayerIndex;
+                const card = document.createElement('div');
+                card.className = `relative flex flex-col items-center p-4 rounded-2xl mb-3 transition-all duration-300 ${isCurrent ? 'bg-purple-50 dark:bg-purple-900/20 shadow-lg shadow-purple-500/20 dark:shadow-purple-900/30 ring-2 ring-purple-400 dark:ring-purple-500' : 'bg-gray-50 dark:bg-slate-700/50 shadow-sm'}`;
+                
+                // Avatar
+                const avatar = document.createElement('div');
+                avatar.className = "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-lg mb-2 shadow-inner";
+                avatar.style.backgroundColor = p.color;
+                avatar.textContent = p.name.substring(0, 2).toUpperCase();
+                card.appendChild(avatar);
+                
+                // Name
+                const name = document.createElement('h3');
+                name.className = "font-bold text-gray-800 dark:text-gray-200 text-sm mb-2 text-center";
+                name.textContent = p.name;
+                card.appendChild(name);
+                
+                // Score display
+                const scoreDiv = document.createElement('div');
+                scoreDiv.className = "text-gray-900 dark:text-white text-center";
+                updateScoreDisplayForCard(scoreDiv, p);
+                card.appendChild(scoreDiv);
+                
+                // Show team members if it's a team
+                if (p.isTeam && p.teamMembers && p.teamMembers.length > 0) {
+                    const membersDiv = document.createElement('div');
+                    membersDiv.className = "mt-2 pt-2 border-t border-gray-200 dark:border-slate-600 w-full";
+                    const membersLabel = document.createElement('div');
+                    membersLabel.className = "text-xs font-medium text-gray-500 dark:text-gray-400 mb-1";
+                    membersLabel.textContent = "Members:";
+                    membersDiv.appendChild(membersLabel);
+                    
+                    p.teamMembers.forEach((member, idx) => {
+                        const isMemberCurrent = isCurrent && (gameState.currentTeamMemberIndex || 0) === idx;
+                        const memberEl = document.createElement('div');
+                        memberEl.className = `flex items-center gap-2 text-xs p-1 rounded ${isMemberCurrent ? 'bg-purple-100 dark:bg-purple-900/30' : ''}`;
+                        const memberDot = document.createElement('div');
+                        memberDot.className = "w-2 h-2 rounded-full";
+                        memberDot.style.backgroundColor = member.color;
+                        memberEl.appendChild(memberDot);
+                        const memberName = document.createElement('span');
+                        memberName.className = "text-gray-700 dark:text-gray-300";
+                        memberName.textContent = member.name;
+                        memberEl.appendChild(memberName);
+                        const memberScore = document.createElement('span');
+                        memberScore.className = "ml-auto text-gray-600 dark:text-gray-400 font-mono";
+                        memberScore.textContent = member.score;
+                        memberEl.appendChild(memberScore);
+                        membersDiv.appendChild(memberEl);
+                    });
+                    card.appendChild(membersDiv);
+                }
+                
+                // Round indicator for Highest Score and Lowest Score modes
+                if (gameState.gameMode === 'Highest Score' || gameState.gameMode === 'Lowest Score') {
+                    const roundDiv = document.createElement('div');
+                    roundDiv.className = "mt-2 text-xs font-medium text-gray-500 dark:text-gray-400";
+                    const currentRound = p.currentRound || 1;
+                    const totalRounds = p.totalRounds || 10;
+                    roundDiv.textContent = `Round ${currentRound}/${totalRounds}`;
+                    card.appendChild(roundDiv);
+                }
+                
+                container.appendChild(card);
+            });
+        }
+        
+        function updateScoreDisplayForCard(el, p) {
+            while (el.firstChild) el.removeChild(el.firstChild);
+            
+            if (gameState.gameMode === '501') {
+                const span = document.createElement('span');
+                span.className = "text-3xl font-black tracking-tighter dark:text-white";
+                span.textContent = p.score;
+                el.appendChild(span);
+            } else if (gameState.gameMode === 'Cricket') {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex flex-col items-center";
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = "text-xl font-bold dark:text-white";
+                scoreSpan.textContent = p.score;
+                wrapper.appendChild(scoreSpan);
+                const dotsContainer = document.createElement('div');
+                dotsContainer.className = "flex gap-0.5 mt-1";
+                [15, 16, 17, 18, 19, 20, 25].forEach(t => {
+                    const hits = p.cricketState[t] || 0;
+                    const col = document.createElement('div');
+                    col.className = "flex flex-col items-center w-2";
+                    for (let i = 1; i <= 3; i++) {
+                        const dot = document.createElement('div');
+                        dot.className = `h-0.5 w-full rounded-full ${i > 1 ? 'mt-0.5' : ''} ${hits >= i ? 'bg-green-500' : 'bg-gray-200 dark:bg-slate-700'}`;
+                        col.appendChild(dot);
+                    }
+                    dotsContainer.appendChild(col);
+                });
+                wrapper.appendChild(dotsContainer);
+                el.appendChild(wrapper);
+            } else if (gameState.gameMode === 'Killer') {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex flex-col items-center";
+                const lives = document.createElement('div');
+                lives.className = "flex gap-1 mb-1";
+                for(let i=0; i<5; i++) {
+                    const dot = document.createElement('div');
+                    dot.className = `w-2 h-2 rounded-full ${i < p.score ? 'bg-red-500' : 'bg-gray-200 dark:bg-slate-700'}`;
+                    lives.appendChild(dot);
+                }
+                const target = document.createElement('span');
+                target.className = "text-xs font-bold text-gray-500 dark:text-gray-400";
+                target.textContent = `TARGET: ${p.killerTarget}`;
+                wrapper.appendChild(lives);
+                wrapper.appendChild(target);
+                el.appendChild(wrapper);
+            } else if (gameState.gameMode === 'Tic-Tac-Toe') {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex flex-wrap gap-1 justify-center max-w-[100px]";
+                p.tttClaims.forEach(c => {
+                    const chip = document.createElement('span');
+                    chip.className = "text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1 rounded";
+                    chip.textContent = c;
+                    wrapper.appendChild(chip);
+                });
+                el.appendChild(wrapper);
+            } else if (gameState.gameMode === 'Highest Score' || gameState.gameMode === 'Lowest Score') {
+                const wrapper = document.createElement('div');
+                wrapper.className = "flex flex-col items-center";
+                const scoreSpan = document.createElement('span');
+                scoreSpan.className = "text-3xl font-black tracking-tighter dark:text-white";
+                scoreSpan.textContent = p.score;
+                wrapper.appendChild(scoreSpan);
+                if (p.currentRound && p.totalRounds) {
+                    const roundSpan = document.createElement('span');
+                    roundSpan.className = "text-xs text-gray-500 dark:text-gray-400 mt-1";
+                    roundSpan.textContent = `Round ${p.currentRound}/${p.totalRounds}`;
+                    wrapper.appendChild(roundSpan);
+                }
+                el.appendChild(wrapper);
+            }
+        }
+
+        function getScoreDisplay(p) {
+            if (gameState.gameMode === '501') return `<span class="text-4xl font-black tracking-tighter dark:text-white">${p.score}</span>`;
+            if (gameState.gameMode === 'Cricket') {
+                return `
+                    <div class="flex flex-col items-center">
+                        <span class="text-2xl font-bold dark:text-white">${p.score}</span>
+                        <div class="flex gap-0.5 mt-1">
+                            ${[15, 16, 17, 18, 19, 20, 25].map(t => {
+                                const hits = p.cricketState[t] || 0;
+                                return `<div class="flex flex-col items-center w-3">
+                                    <div class="h-1 w-full rounded-full ${hits >= 1 ? 'bg-green-500' : 'bg-gray-200 dark:bg-slate-700'}"></div>
+                                    <div class="h-1 w-full rounded-full mt-0.5 ${hits >= 2 ? 'bg-green-500' : 'bg-gray-200 dark:bg-slate-700'}"></div>
+                                    <div class="h-1 w-full rounded-full mt-0.5 ${hits >= 3 ? 'bg-green-500' : 'bg-gray-200 dark:bg-slate-700'}"></div>
+                                </div>`;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            if (gameState.gameMode === 'Killer') {
+                return `
+                    <div class="flex flex-col items-center">
+                        <div class="flex gap-1 mb-1">
+                            ${Array.from({ length: 5 }).map((_, i) => `<div class="w-3 h-3 rounded-full ${i < p.score ? 'bg-red-500' : 'bg-gray-200 dark:bg-slate-700'}"></div>`).join('')}
+                        </div>
+                        <span class="text-xs font-bold text-gray-500 dark:text-gray-400">TARGET: ${p.killerTarget}</span>
+                    </div>
+                `;
+            }
+            if (gameState.gameMode === 'Tic-Tac-Toe') {
+                return `
+                    <div class="flex flex-wrap gap-1 w-12 justify-center">
+                        ${p.tttClaims.map(c => `<span class="text-[10px] bg-blue-100 dark:bg-blue-900/50 text-blue-700 dark:text-blue-300 px-1 rounded">${c}</span>`).join('')}
+                    </div>
+                `;
+            }
+            return '';
+        }
+
+        function renderNumberPad() {
+            const container = document.getElementById('number-pad-container');
+            if (!container || !gameState) return;
+            
+            container.innerHTML = `
+                ${gameState.activeParticipants[gameState.currentPlayerIndex] ? `<div class="flex-1 flex justify-center items-center gap-1 mb-4">
+                    ${[0, 1, 2].map(throwIdx => `<div class="rounded-full transition-colors duration-300 p-2 ${throwIdx < gameState.roundThrows.length ? 'bg-purple-500' : 'bg-gray-300 dark:bg-slate-600'}">
+                        <i data-lucide="minus" class="w-4 h-4 text-white"></i>
+                    </div>`).join('')}
+                </div>` : ''}
+                <div class="flex gap-3 mb-4 justify-center">
+                    <button onclick="setMultiplier(2)" id="mult-2" class="flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md ${currentMultiplier === 2 ? 'bg-pink-500 text-white shadow-pink-500/40 ring-2 ring-pink-400 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white dark:bg-slate-800 text-pink-500 dark:text-pink-400 border-2 border-pink-100 dark:border-pink-900/30'}">DOUBLE (x2)</button>
+                    <button onclick="setMultiplier(3)" id="mult-3" class="flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md ${currentMultiplier === 3 ? 'bg-purple-500 text-white shadow-purple-500/40 ring-2 ring-purple-400 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white dark:bg-slate-800 text-purple-500 dark:text-purple-400 border-2 border-purple-100 dark:border-purple-900/30'}">TRIPLE (x3)</button>
+                </div>
+                <div class="grid grid-cols-5 gap-2 sm:gap-3">
+                    ${Array.from({ length: 20 }, (_, i) => i + 1).map(num => `
+                        <button onclick="handleScore(${num}, currentMultiplier); currentMultiplier = 1; updateMultiplierUI();" class="aspect-square rounded-2xl font-bold text-xl sm:text-2xl shadow-sm flex items-center justify-center transition-all duration-200 active:scale-75 ${currentMultiplier === 1 ? 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 shadow-slate-200/50 dark:shadow-black/20' : currentMultiplier === 2 ? 'bg-pink-50 dark:bg-pink-900/20 text-pink-600 dark:text-pink-400 border-2 border-pink-200 dark:border-pink-800' : 'bg-purple-50 dark:bg-purple-900/20 text-purple-600 dark:text-purple-400 border-2 border-purple-200 dark:border-purple-800'}">${num}</button>
+                    `).join('')}
+                    <button onclick="handleScore(0, 1); currentMultiplier = 1; updateMultiplierUI();" class="col-span-2 rounded-2xl bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 font-bold text-lg flex items-center justify-center active:scale-95">MISS</button>
+                    <button onclick="handleScore(25, currentMultiplier); currentMultiplier = 1; updateMultiplierUI();" class="col-span-1 aspect-square rounded-2xl bg-emerald-500 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-emerald-500/30 active:scale-90">25</button>
+                    <button onclick="handleScore(50, 1); currentMultiplier = 1; updateMultiplierUI();" class="col-span-2 rounded-2xl bg-rose-500 text-white font-bold text-lg flex items-center justify-center shadow-lg shadow-rose-500/30 active:scale-95">BULL</button>
+                </div>
+            `;
+            lucide.createIcons();
+        }
+
+        function setMultiplier(v) {
+            currentMultiplier = currentMultiplier === v ? 1 : v;
+            updateMultiplierUI();
+        }
+
+        function updateMultiplierUI() {
+            const m2 = document.getElementById('mult-2');
+            const m3 = document.getElementById('mult-3');
+            if (!m2 || !m3) return;
+            m2.className = `flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md ${currentMultiplier === 2 ? 'bg-pink-500 text-white shadow-pink-500/40 ring-2 ring-pink-400 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white dark:bg-slate-800 text-pink-500 dark:text-pink-400 border-2 border-pink-100 dark:border-pink-900/30'}`;
+            m3.className = `flex-1 py-4 rounded-2xl font-black text-lg transition-all duration-200 shadow-md ${currentMultiplier === 3 ? 'bg-purple-500 text-white shadow-purple-500/40 ring-2 ring-purple-400 ring-offset-2 dark:ring-offset-slate-900' : 'bg-white dark:bg-slate-800 text-purple-500 dark:text-purple-400 border-2 border-purple-100 dark:border-purple-900/30'}`;
+            renderNumberPad();
+        }
+
+        function handleScore(basePoints, multiplier) {
+            if (!gameState || gameState.winner) return;
+            const points = basePoints * multiplier;
+            // Save state for undo (include throws array)
+            const previousState = JSON.parse(JSON.stringify({ 
+                ...gameState, 
+                history: [],
+                throws: [...gameState.throws] // Include throws array
+            }));
+
+            let participants = JSON.parse(JSON.stringify(gameState.activeParticipants));
+            let winner = null;
+            let turnEnded = false;
+
+            // Calculate round and throw numbers
+            const throwNumber = gameState.roundThrows.length + 1; // 1, 2, or 3
+            
+            // Calculate which round we're in
+            // For teams: count total team members
+            let totalActivePlayers = participants.length;
+            if (participants[0] && participants[0].isTeam && participants[0].teamMembers) {
+                totalActivePlayers = participants.reduce((sum, p) => sum + (p.teamMembers ? p.teamMembers.length : 1), 0);
+            }
+            const roundNumber = Math.floor(gameState.totalThrows / (totalActivePlayers * 3)) + 1;
+            const currentParticipant = participants[gameState.currentPlayerIndex];
+            
+            // For teams, get the actual player throwing
+            let currentPlayer = currentParticipant;
+            let isTeamGame = currentParticipant.isTeam || false;
+            if (isTeamGame && currentParticipant.teamMembers && currentParticipant.teamMembers.length > 0) {
+                const memberIndex = gameState.currentTeamMemberIndex || 0;
+                currentPlayer = currentParticipant.teamMembers[memberIndex];
+            }
+            
+            const scoreBefore = currentParticipant.score;
+
+            if (gameState.gameMode === '501') {
+                const currentScore = participants[gameState.currentPlayerIndex].score;
+                const newScore = currentScore - points;
+                if (newScore === 0) {
+                    participants[gameState.currentPlayerIndex].score = 0;
+                    winner = participants[gameState.currentPlayerIndex];
+                } else if (newScore > 0) {
+                    participants[gameState.currentPlayerIndex].score = newScore;
+                }
+                
+                // For teams, update individual player score and sum to team
+                if (isTeamGame && currentParticipant.teamMembers) {
+                    const memberIndex = gameState.currentTeamMemberIndex || 0;
+                    const member = currentParticipant.teamMembers[memberIndex];
+                    if (member) {
+                        const memberScore = member.score - points;
+                        if (memberScore >= 0) {
+                            member.score = memberScore;
+                            // Sum all team member scores to get team score
+                            participants[gameState.currentPlayerIndex].score = currentParticipant.teamMembers.reduce((sum, m) => sum + m.score, 0);
+                            if (participants[gameState.currentPlayerIndex].score === 0) {
+                                winner = participants[gameState.currentPlayerIndex];
+                            }
+                        }
+                    }
+                }
+            } else if (gameState.gameMode === 'Highest Score') {
+                // Add points to score (accumulative)
+                participants[gameState.currentPlayerIndex].score += points;
+                
+                // For teams, update individual player score and sum to team
+                if (isTeamGame && currentParticipant.teamMembers) {
+                    const memberIndex = gameState.currentTeamMemberIndex || 0;
+                    const member = currentParticipant.teamMembers[memberIndex];
+                    if (member) {
+                        member.score += points;
+                        // Sum all team member scores to get team score
+                        participants[gameState.currentPlayerIndex].score = currentParticipant.teamMembers.reduce((sum, m) => sum + m.score, 0);
+                    }
+                }
+                
+                // Update current round for all participants
+                participants.forEach(p => {
+                    p.currentRound = roundNumber;
+                });
+                
+                // Check if all rounds are complete (after all players have thrown in the last round)
+                const totalRounds = currentParticipant.totalRounds || 10;
+                // Check if this is the last throw of the last round
+                const totalPlayers = isTeamGame && currentParticipant.teamMembers ? 
+                    participants.reduce((sum, pt) => sum + (pt.teamMembers ? pt.teamMembers.length : 1), 0) :
+                    participants.length;
+                const throwsInCurrentRound = gameState.totalThrows % (totalPlayers * 3);
+                if (roundNumber >= totalRounds && throwsInCurrentRound === 0 && gameState.roundThrows.length === 3) {
+                    // Game ends, highest score wins
+                    const sorted = [...participants].sort((a, b) => b.score - a.score);
+                    winner = sorted[0];
+                }
+            } else if (gameState.gameMode === 'Lowest Score') {
+                // Add points to score (accumulative)
+                participants[gameState.currentPlayerIndex].score += points;
+                
+                // For teams, update individual player score and sum to team
+                if (isTeamGame && currentParticipant.teamMembers) {
+                    const memberIndex = gameState.currentTeamMemberIndex || 0;
+                    const member = currentParticipant.teamMembers[memberIndex];
+                    if (member) {
+                        member.score += points;
+                        // Sum all team member scores to get team score
+                        participants[gameState.currentPlayerIndex].score = currentParticipant.teamMembers.reduce((sum, m) => sum + m.score, 0);
+                    }
+                }
+                
+                // Update current round for all participants
+                participants.forEach(p => {
+                    p.currentRound = roundNumber;
+                });
+                
+                // Check if all rounds are complete (after all players have thrown in the last round)
+                const totalRounds = currentParticipant.totalRounds || 10;
+                // Check if this is the last throw of the last round
+                const totalPlayers = isTeamGame && currentParticipant.teamMembers ? 
+                    participants.reduce((sum, pt) => sum + (pt.teamMembers ? pt.teamMembers.length : 1), 0) :
+                    participants.length;
+                const throwsInCurrentRound = gameState.totalThrows % (totalPlayers * 3);
+                if (roundNumber >= totalRounds && throwsInCurrentRound === 0 && gameState.roundThrows.length === 3) {
+                    // Game ends, lowest score wins
+                    const sorted = [...participants].sort((a, b) => a.score - b.score);
+                    winner = sorted[0];
+                }
+            } else if (gameState.gameMode === 'Cricket') {
+                const target = (basePoints === 50 || basePoints === 25) ? 25 : basePoints;
+                const validTargets = [15, 16, 17, 18, 19, 20, 25];
+                if (validTargets.includes(target)) {
+                    let hitsToApply = multiplier;
+                    let currentHits = participants[gameState.currentPlayerIndex].cricketState[target];
+                    if (currentHits < 3) {
+                        const used = Math.min(3 - currentHits, hitsToApply);
+                        currentHits += used;
+                        hitsToApply -= used;
+                        participants[gameState.currentPlayerIndex].cricketState[target] = currentHits;
+                    }
+                    if (hitsToApply > 0) {
+                        const anyoneOpen = participants.some((p, i) => i !== gameState.currentPlayerIndex && p.cricketState[target] < 3);
+                        if (anyoneOpen) participants[gameState.currentPlayerIndex].score += target * hitsToApply;
+                    }
+                    if (validTargets.every(t => participants[gameState.currentPlayerIndex].cricketState[t] >= 3)) {
+                        const highestScore = Math.max(...participants.map(p => p.score));
+                        if (participants[gameState.currentPlayerIndex].score >= highestScore) winner = participants[gameState.currentPlayerIndex];
+                    }
+                }
+            } else if (gameState.gameMode === 'Killer') {
+                const targetOwnerIndex = participants.findIndex(p => p.killerTarget === basePoints);
+                if (targetOwnerIndex !== -1) {
+                    if (targetOwnerIndex === gameState.currentPlayerIndex) {
+                        if (participants[targetOwnerIndex].score < 5) participants[targetOwnerIndex].score += 1;
+                    } else if (participants[targetOwnerIndex].score > 0) {
+                        participants[targetOwnerIndex].score -= 1;
+                    }
+                }
+                const alive = participants.filter(p => p.score > 0);
+                if (alive.length === 1) winner = alive[0];
+            } else if (gameState.gameMode === 'Tic-Tac-Toe') {
+                if (basePoints >= 1 && basePoints <= 9) {
+                    if (!participants.some(p => p.tttClaims.includes(basePoints))) {
+                        participants[gameState.currentPlayerIndex].tttClaims.push(basePoints);
+                        if (TTT_WINS.some(c => c.every(n => participants[gameState.currentPlayerIndex].tttClaims.includes(n)))) {
+                            winner = participants[gameState.currentPlayerIndex];
+                        }
+                    }
+                }
+            }
+
+            gameState.activeParticipants = participants;
+            gameState.roundThrows.push(points);
+            gameState.totalThrows++;
+
+            // Calculate score after
+            const scoreAfter = participants[gameState.currentPlayerIndex].score;
+
+            // Save throw to IndexedDB
+            const throwData = {
+                gameId: gameState.gameId,
+                playerId: currentPlayer.id,
+                playerName: currentPlayer.name,
+                participantId: currentParticipant.id,
+                participantName: currentParticipant.name,
+                isTeam: isTeamGame,
+                basePoints: basePoints,
+                multiplier: multiplier,
+                points: points,
+                roundNumber: roundNumber,
+                throwNumber: throwNumber,
+                gameMode: gameState.gameMode,
+                scoreBefore: scoreBefore,
+                scoreAfter: scoreAfter
+            };
+
+            // Save to IndexedDB (async, don't wait)
+            db.saveThrow(throwData).catch(err => console.error('Failed to save throw', err));
+
+            // Add to in-memory throws array
+            gameState.throws.push(throwData);
+
+            if (gameState.roundThrows.length >= 3 || winner) {
+                turnEnded = true;
+                if (!winner) {
+                    // For teams, cycle through team members first
+                    if (isTeamGame && currentParticipant.teamMembers && currentParticipant.teamMembers.length > 0) {
+                        gameState.currentTeamMemberIndex = (gameState.currentTeamMemberIndex + 1) % currentParticipant.teamMembers.length;
+                        // If we've cycled through all members, move to next team
+                        if (gameState.currentTeamMemberIndex === 0) {
+                            gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % participants.length;
+                            // Reset team member index for new team
+                            if (participants[gameState.currentPlayerIndex].isTeam && participants[gameState.currentPlayerIndex].teamMembers) {
+                                gameState.currentTeamMemberIndex = 0;
+                            }
+                        }
+                    } else {
+                        gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % participants.length;
+                    }
+                    
+                    if (gameState.gameMode === 'Killer') {
+                        let attempts = 0;
+                        while (participants[gameState.currentPlayerIndex] && participants[gameState.currentPlayerIndex].score <= 0 && attempts < participants.length) {
+                            gameState.currentPlayerIndex = (gameState.currentPlayerIndex + 1) % participants.length;
+                            attempts++;
+                        }
+                    }
+                }
+            }
+
+            if (winner) {
+                gameState.winner = winner;
+                playSound('win');
+                startConfetti();
+                db.saveGame({
+                    mode: gameState.gameMode,
+                    participants: gameState.activeParticipants,
+                    winner: winner,
+                    gameId: gameState.gameId,
+                    throwsCount: gameState.totalThrows
+                }).catch(err => console.error('Failed to save game', err));
+            } else if (points >= 60 || basePoints === 50) {
+                playSound('milestone');
+            } else {
+                playSound('click');
+            }
+
+            gameState.history.push(previousState);
+            if (gameState.history.length > 5) gameState.history.shift();
+            if (turnEnded) gameState.roundThrows = [];
+            
+            saveCurrentGameState();
+            render();
+            renderScoreLog();
+        }
+
+        function undoLastThrow() {
+            if (!gameState || gameState.history.length === 0) return;
+            const prev = gameState.history.pop();
+            Object.assign(gameState, prev);
+            // Restore throws array from previous state
+            if (prev.throws) {
+                gameState.throws = prev.throws;
+            }
+            saveCurrentGameState();
+            render();
+            if (scoreLogVisible) renderScoreLog();
+        }
+
+        let scoreLogVisible = false;
+
+        function toggleScoreLog() {
+            scoreLogVisible = !scoreLogVisible;
+            const panel = document.getElementById('score-log-panel-mobile');
+            if (panel) {
+                if (scoreLogVisible) {
+                    panel.classList.remove('hidden');
+                    renderScoreLog();
+                } else {
+                    panel.classList.add('hidden');
+                }
+            }
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        function renderScoreLog() {
+            const container = document.getElementById('score-log-content');
+            const mobileContainer = document.getElementById('score-log-content-mobile');
+            const containers = [container, mobileContainer].filter(c => c !== null);
+            
+            if (!gameState) return;
+            
+            containers.forEach(cont => {
+                if (!cont) return;
+                
+                // Clear existing content
+                while (cont.firstChild) cont.removeChild(cont.firstChild);
+
+                // Get last 20 throws (most recent first)
+                const recentThrows = [...gameState.throws].slice(-20).reverse();
+
+                if (recentThrows.length === 0) {
+                    const emptyMsg = document.createElement('div');
+                    emptyMsg.className = "text-center text-gray-400 dark:text-gray-500 text-sm py-4";
+                    emptyMsg.textContent = "No throws yet";
+                    cont.appendChild(emptyMsg);
+                    return;
+                }
+
+                recentThrows.forEach(throwData => {
+                    const throwEl = document.createElement('div');
+                    throwEl.className = "flex items-center gap-2 p-2 rounded-lg bg-gray-50 dark:bg-slate-700/50 text-sm";
+
+                    // Player name with color
+                    const playerName = document.createElement('span');
+                    playerName.className = "font-bold";
+                    playerName.textContent = throwData.playerName;
+                    const player = gameState.activeParticipants.find(p => {
+                        if (p.isTeam && p.teamMembers) {
+                            return p.teamMembers.some(m => m.id === throwData.playerId);
+                        }
+                        return p.id === throwData.playerId;
+                    });
+                    if (player) {
+                        if (player.isTeam && player.teamMembers) {
+                            const member = player.teamMembers.find(m => m.id === throwData.playerId);
+                            if (member) playerName.style.color = member.color;
+                        } else {
+                            playerName.style.color = player.color;
+                        }
+                    }
+                    throwEl.appendChild(playerName);
+
+                    // Throw details
+                    const details = document.createElement('span');
+                    details.className = "text-gray-600 dark:text-gray-400";
+                    
+                    let throwText = '';
+                    if (throwData.basePoints === 0) {
+                        throwText = 'MISS';
+                    } else if (throwData.basePoints === 25 || throwData.basePoints === 50) {
+                        throwText = throwData.basePoints === 50 ? 'BULL' : '25';
+                    } else {
+                        throwText = `${throwData.basePoints}${throwData.multiplier > 1 ? ` x${throwData.multiplier}` : ''}`;
+                    }
+                    
+                    details.textContent = `${throwText} = ${throwData.points} (R${throwData.roundNumber}, T${throwData.throwNumber})`;
+                    throwEl.appendChild(details);
+
+                    cont.appendChild(throwEl);
+                });
+
+                // Auto-scroll to top (most recent)
+                cont.scrollTop = 0;
+            });
+        }
+
+        function render() {
+            renderParticipants();
+            renderNumberPad();
+            renderModal();
+            updateUndoButton();
+            renderScoreLog(); // Always render on desktop, conditionally on mobile
+        }
+
+        function updateUndoButton() {
+            const undoBtn = document.getElementById('undo-btn');
+            if (undoBtn) {
+                undoBtn.classList.toggle('hidden', !gameState || gameState.winner !== null);
+            }
+        }
+
+        function renderModal() {
+            const modal = document.getElementById('modal-container');
+            if (!gameState || !gameState.winner) {
+                if (modal) {
+                    modal.classList.add('hidden');
+                    modal.classList.remove('flex');
+                }
+                return;
+            }
+            if (!modal) return;
+            
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            modal.innerHTML = `
+                <div class="bg-white dark:bg-slate-800 rounded-3xl p-6 sm:p-8 max-w-sm w-full text-center shadow-2xl relative overflow-hidden transition-colors duration-300 my-auto animate-scale-in">
+                    <div class="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-purple-500 to-pink-500"></div>
+                    <div class="mb-4 inline-flex p-4 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-500 dark:text-yellow-400"><i data-lucide="trophy" class="w-10 h-10"></i></div>
+                    <h2 class="text-3xl font-black text-gray-900 dark:text-white mb-1">WINNER!</h2>
+                    <p class="text-gray-500 dark:text-gray-400 mb-6 text-lg"><span class="font-bold" style="color: ${gameState.winner.color}">${gameState.winner.name}</span> takes the crown!</p>
+                    <div id="score-card" class="w-full bg-gray-50 dark:bg-slate-700/50 rounded-2xl p-4 mb-6 border border-gray-100 dark:border-slate-600"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                        <button onclick="rematch()" class="py-3 bg-gray-900 dark:bg-white text-white dark:text-gray-900 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors text-sm"><i data-lucide="rotate-ccw" class="w-4.5 h-4.5"></i> Rematch</button>
+                        <button onclick="mainMenu()" class="py-3 bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-gray-200 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-gray-200 dark:hover:bg-slate-600 transition-colors text-sm"><i data-lucide="home" class="w-4.5 h-4.5"></i> Menu</button>
+                    </div>
+                </div>
+            `;
+            renderScoreCard(document.getElementById('score-card'));
+            lucide.createIcons();
+        }
+
+        function renderScoreCard(container) {
+            if (!container || !gameState) return;
+            const sorted = [...gameState.activeParticipants].sort((a, b) => {
+                if (a.id === gameState.winner.id) return -1;
+                if (b.id === gameState.winner.id) return 1;
+                // For 501 and Lowest Score: ascending (lower is better)
+                // For Highest Score and others: descending (higher is better)
+                if (gameState.gameMode === '501' || gameState.gameMode === 'Lowest Score') {
+                    return a.score - b.score;
+                }
+                return b.score - a.score;
+            });
+            container.innerHTML = `
+                <div class="flex justify-between items-center mb-4 px-2">
+                    <h3 class="text-sm font-bold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Score Card</h3>
+                    <span class="text-xs font-medium px-2 py-1 bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-300 rounded-full">${gameState.gameMode}</span>
+                </div>
+                <div class="space-y-2 mb-6">
+                    ${sorted.map((p, i) => `
+                        <div class="flex items-center p-3 rounded-xl ${p.id === gameState.winner.id ? 'bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-100 dark:border-yellow-900/30' : 'bg-white dark:bg-slate-800'}">
+                            <div class="w-6 text-center font-bold text-gray-400 text-sm mr-2">${i + 1}</div>
+                            <div class="w-8 h-8 rounded-full flex items-center justify-center text-white text-xs font-bold mr-3 shadow-sm" style="background-color: ${p.color}">${p.name.substring(0, 2).toUpperCase()}</div>
+                            <div class="flex-1 font-bold text-gray-800 dark:text-gray-200 text-sm truncate">${p.name} ${p.id === gameState.winner.id ? '<i data-lucide="trophy" class="w-3 h-3 inline ml-2 text-yellow-500"></i>' : ''}</div>
+                            <div class="font-mono font-bold text-gray-900 dark:text-white">${p.score}</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <button onclick="shareResults(this)" class="w-full py-3 rounded-xl font-bold flex items-center justify-center gap-2 bg-gradient-to-r from-purple-500 to-pink-500 text-white shadow-lg transition-all active:scale-95"><i data-lucide="share-2" class="w-4.5 h-4.5"></i> Share Results</button>
+            `;
+            lucide.createIcons();
+        }
+
+        function shareResults(btn) {
+            if (!gameState) return;
+            const sorted = [...gameState.activeParticipants].sort((a, b) => (gameState.gameMode === '501') ? a.score - b.score : b.score - a.score);
+            const text = `🎯 DARTS PARTY - ${gameState.gameMode}\n🏆 Winner: ${gameState.winner.name}\n\nScores:\n${sorted.map((p, i) => `${i + 1}. ${p.name} - ${p.score}`).join('\n')}`;
+            navigator.clipboard.writeText(text).then(() => {
+                const oldText = btn.innerHTML;
+                btn.innerHTML = `<i data-lucide="check" class="w-4.5 h-4.5"></i> Shared!`;
+                btn.classList.replace('from-purple-500', 'from-green-500');
+                btn.classList.replace('to-pink-500', 'to-emerald-500');
+                lucide.createIcons();
+                setTimeout(() => {
+                    btn.innerHTML = oldText;
+                    btn.classList.replace('from-green-500', 'from-purple-500');
+                    btn.classList.replace('to-emerald-500', 'to-pink-500');
+                    lucide.createIcons();
+                }, 2000);
+            });
+        }
+
+        function rematch() {
+            if (!gameState) return;
+            const state = getState();
+            const participants = state.isPlayerType ? state.players : state.teams;
+            
+            gameState = {
+                gameMode: gameState.gameMode,
+                activeParticipants: participants.map((p, i) => ({
+                    ...p,
+                    score: gameState.gameMode === '501' ? 501 : gameState.gameMode === 'Killer' ? INITIAL_LIVES : 0,
+                    cricketState: gameState.gameMode === 'Cricket' ? { 15: 0, 16: 0, 17: 0, 18: 0, 19: 0, 20: 0, 25: 0 } : undefined,
+                    killerTarget: gameState.gameMode === 'Killer' ? i + 1 : undefined,
+                    tttClaims: [],
+                })),
+                currentPlayerIndex: 0,
+                winner: null,
+                history: [],
+                roundThrows: [],
+                isPlayerType: state.isPlayerType
+            };
+            
+            saveCurrentGameState();
+            playSound('click');
+            render();
+        }
+
+        function mainMenu() {
+            clearGameState();
+            window.location.href = 'index.html';
+        }
+
+        window.onload = async () => {
+            updateTheme();
+            updateSoundIcons();
+            try {
+                await db.init();
+                loadGameState();
+                render();
+            } catch (e) {
+                console.error('Failed to initialize', e);
+            }
+            lucide.createIcons();
+        };
+    </script>
+</body>
+
+</html>

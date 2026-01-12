@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>History - Darts Party</title>
+    <link rel="icon" type="image/png" href="icon.png">
+    <!-- Tailwind Play CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    },
+                },
+            },
+        }
+    </script>
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Shared CSS -->
+    <link rel="stylesheet" href="shared.css">
+</head>
+
+<body
+    class="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-slate-900 dark:via-purple-950 dark:to-slate-900 min-h-screen transition-colors duration-300">
+    
+    <div id="app" class="min-h-screen flex flex-col">
+        <!-- Header -->
+        <header class="p-4 flex justify-between items-center max-w-4xl mx-auto w-full relative z-10">
+            <div class="flex items-center gap-2">
+                <a href="index.html" class="p-2 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200">
+                    <i data-lucide="chevron-left" class="w-6 h-6"></i>
+                </a>
+                <h1
+                    class="text-xl font-black bg-clip-text text-transparent bg-gradient-to-r from-purple-600 to-pink-600 dark:from-purple-400 dark:to-pink-400">
+                    DARTS PARTY</h1>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="toggleTheme()"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Toggle theme">
+                    <i data-lucide="sun" class="w-5 h-5 hidden dark:block"></i>
+                    <i data-lucide="moon" class="w-5 h-5 block dark:hidden"></i>
+                </button>
+                <button onclick="toggleSound()"
+                    class="p-3 rounded-full bg-white/50 dark:bg-slate-800/50 hover:bg-white dark:hover:bg-slate-700 transition-colors text-gray-700 dark:text-gray-200"
+                    aria-label="Toggle sound">
+                    <i data-lucide="volume-2" id="sound-on-icon" class="w-5 h-5 hidden"></i>
+                    <i data-lucide="volume-x" id="sound-off-icon" class="w-5 h-5"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Main Content -->
+        <main class="max-w-4xl mx-auto pb-8 w-full flex-1 relative z-0">
+            <div class="pt-8 px-4 animate-scale-in max-w-2xl mx-auto">
+                <div class="flex justify-between items-center mb-8">
+                    <div>
+                        <h2 class="text-3xl font-black text-gray-900 dark:text-white mb-1">Game History</h2>
+                        <p class="text-gray-500 dark:text-gray-400">Your past victories and sessions.</p>
+                    </div>
+                    <button onclick="clearHistory()" id="clear-btn" class="p-2 text-gray-400 hover:text-red-500 transition-colors hidden" title="Clear History">
+                        <i data-lucide="trash-2" class="w-6 h-6"></i>
+                    </button>
+                </div>
+
+                <div id="history-container">
+                    <!-- History will be rendered here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Templates -->
+    <template id="no-history-template">
+        <div class="bg-white dark:bg-slate-800 rounded-3xl p-12 text-center shadow-sm">
+            <div class="w-16 h-16 bg-gray-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4 text-gray-400">
+                <i data-lucide="info" class="w-8 h-8"></i>
+            </div>
+            <h3 class="text-xl font-bold text-gray-800 dark:text-white mb-2">No games yet!</h3>
+            <p class="text-gray-500 dark:text-gray-400 mb-6">Play some matches to see your history here.</p>
+            <a href="index.html" class="inline-block px-6 py-2 bg-purple-600 text-white rounded-xl font-bold">Start Playing</a>
+        </div>
+    </template>
+
+    <template id="history-item-template">
+        <div class="bg-white dark:bg-slate-800 rounded-2xl p-4 shadow-sm border border-transparent hover:border-purple-200 dark:hover:border-purple-900/30 transition-all history-card">
+            <div class="flex justify-between items-start mb-3">
+                <div class="flex items-center gap-3">
+                    <div class="w-10 h-10 rounded-xl bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center">
+                        <i data-lucide="target" class="w-6 h-6"></i>
+                    </div>
+                    <div>
+                        <div class="font-black text-gray-900 dark:text-white game-mode"></div>
+                        <div class="text-xs text-gray-500 dark:text-gray-400 game-date"></div>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <div class="text-xs font-bold text-gray-400 uppercase tracking-wider">Winner</div>
+                    <div class="font-bold game-winner"></div>
+                </div>
+            </div>
+            <div class="flex gap-2 overflow-x-auto pb-1 scrollbar-hide participants-list">
+                <!-- Participants injected here -->
+            </div>
+        </div>
+    </template>
+
+    <script src="shared.js"></script>
+    <script>
+        let gameHistory = [];
+
+        async function loadHistory() {
+            try {
+                await db.init();
+                gameHistory = await db.getGames();
+                renderHistory();
+            } catch (e) {
+                console.error('Failed to load history', e);
+            }
+        }
+
+        function renderHistory() {
+            const container = document.getElementById('history-container');
+            const clearBtn = document.getElementById('clear-btn');
+            
+            // Safe DOM clear
+            while (container.firstChild) container.removeChild(container.firstChild);
+            
+            if (gameHistory.length === 0) {
+                if (clearBtn) clearBtn.classList.add('hidden');
+                const template = document.getElementById('no-history-template');
+                container.appendChild(template.content.cloneNode(true));
+            } else {
+                if (clearBtn) clearBtn.classList.remove('hidden');
+                const listContainer = document.createElement('div');
+                listContainer.className = "space-y-4";
+                
+                const template = document.getElementById('history-item-template');
+                
+                gameHistory.forEach(game => {
+                    const clone = template.content.cloneNode(true);
+                    
+                    clone.querySelector('.game-mode').textContent = game.mode;
+                    clone.querySelector('.game-date').textContent = `${new Date(game.timestamp).toLocaleDateString()} at ${new Date(game.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`;
+                    
+                    const winnerEl = clone.querySelector('.game-winner');
+                    winnerEl.textContent = game.winner.name;
+                    winnerEl.style.color = game.winner.color;
+                    
+                    const participantsList = clone.querySelector('.participants-list');
+                    game.participants.forEach(p => {
+                        const chip = document.createElement('div');
+                        chip.className = "flex items-center gap-1.5 px-2 py-1 bg-gray-50 dark:bg-slate-900/50 rounded-lg text-xs font-medium text-gray-600 dark:text-gray-400 whitespace-nowrap";
+                        
+                        const dot = document.createElement('div');
+                        dot.className = "w-2 h-2 rounded-full";
+                        dot.style.backgroundColor = p.color;
+                        
+                        chip.appendChild(dot);
+                        chip.appendChild(document.createTextNode(` ${p.name}: ${p.score}`));
+                        
+                        participantsList.appendChild(chip);
+                    });
+                    
+                    listContainer.appendChild(clone);
+                });
+                
+                container.appendChild(listContainer);
+            }
+            if (window.lucide) window.lucide.createIcons();
+        }
+
+        async function clearHistory() {
+            if (confirm('Are you sure you want to clear your game history?')) {
+                await db.clearHistory();
+                gameHistory = [];
+                renderHistory();
+            }
+        }
+
+        window.onload = async () => {
+            updateTheme();
+            updateSoundIcons();
+            await loadHistory();
+            if (window.lucide) window.lucide.createIcons();
+        };
+    </script>
+</body>
+
+</html>
