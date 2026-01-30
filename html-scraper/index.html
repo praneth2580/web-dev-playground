@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HTML Scraper Portal</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="portal">
+    <header class="header">
+      <h1>HTML Scraper Portal</h1>
+      <p class="tagline">Paste static HTML and extract structured data</p>
+    </header>
+
+    <main class="main">
+      <section class="input-section">
+        <label for="html-input">HTML source</label>
+        <textarea
+          id="html-input"
+          placeholder="Paste your HTML here..."
+          rows="12"
+        ></textarea>
+
+        <div class="controls">
+          <div class="extract-mode">
+            <label>Extract by</label>
+            <select id="extract-mode">
+              <option value="auto">Auto (links, headings, images, tables)</option>
+              <option value="links">Links only</option>
+              <option value="headings">Headings only</option>
+              <option value="images">Images only</option>
+              <option value="tables">Tables only</option>
+              <option value="custom">Custom selector</option>
+            </select>
+          </div>
+          <div class="custom-selector hidden" id="custom-selector-wrap">
+            <label for="custom-selector">CSS selector</label>
+            <input
+              type="text"
+              id="custom-selector"
+              placeholder="e.g. .product-title, #main article"
+            />
+          </div>
+          <button type="button" class="btn-extract" id="btn-extract">
+            Extract data
+          </button>
+        </div>
+      </section>
+
+      <section class="output-section">
+        <div class="output-header">
+          <h2>Extracted data</h2>
+          <button type="button" class="btn-copy hidden" id="btn-copy" title="Copy JSON">
+            Copy JSON
+          </button>
+        </div>
+        <div class="output-placeholder" id="output-placeholder">
+          <span>Paste HTML above and click “Extract data” to see results.</span>
+        </div>
+        <pre class="output-content hidden" id="output-content"></pre>
+        <div class="output-tables hidden" id="output-tables"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="parser.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
