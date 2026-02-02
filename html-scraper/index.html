@@ -4,10 +4,17 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>HTML Scraper Portal</title>
+  <link rel="icon" type="image/svg+xml" href="favicon.svg" />
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
   <div class="portal">
+    <nav class="site-nav" aria-label="Main">
+      <ul class="site-nav__list">
+        <li><a href="index.html" class="site-nav__link site-nav__link--current">HTML Scraper</a></li>
+        <li><a href="instagram/index.html" class="site-nav__link">Instagram Parser</a></li>
+      </ul>
+    </nav>
     <header class="header">
       <h1>HTML Scraper Portal</h1>
       <p class="tagline">Paste static HTML and extract structured data</p>
@@ -60,6 +67,27 @@
         </div>
         <pre class="output-content hidden" id="output-content"></pre>
         <div class="output-tables hidden" id="output-tables"></div>
+      </section>
+
+      <section class="renderer-section">
+        <div class="renderer-header">
+          <h2>Page preview</h2>
+          <button type="button" class="btn-render" id="btn-render" title="Render HTML in preview">
+            Update preview
+          </button>
+        </div>
+        <div class="renderer-placeholder" id="renderer-placeholder">
+          Paste HTML and click “Extract data” or “Update preview” to see the rendered page.
+        </div>
+        <div class="renderer-frame-wrap hidden" id="renderer-wrap">
+          <iframe
+            id="renderer-frame"
+            class="renderer-frame"
+            title="Rendered HTML preview"
+            sandbox="allow-same-origin"
+            srcdoc=""
+          ></iframe>
+        </div>
       </section>
     </main>
   </div>

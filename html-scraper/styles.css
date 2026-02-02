@@ -36,6 +36,51 @@ body {
   padding: 2rem 1.5rem;
 }
 
+/* Site nav */
+.site-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  margin-bottom: 2rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.site-nav__list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.site-nav__link {
+  display: inline-block;
+  padding: 0.5rem 0.875rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--text-muted);
+  text-decoration: none;
+  border-radius: var(--radius);
+  transition: color 0.15s, background 0.15s;
+}
+
+.site-nav__link:hover {
+  color: var(--text);
+  background: var(--surface);
+}
+
+.site-nav__link--current {
+  color: var(--accent);
+  background: rgba(124, 108, 246, 0.12);
+}
+
+.site-nav__link--current:hover {
+  color: var(--accent-hover);
+  background: rgba(124, 108, 246, 0.18);
+}
+
 /* Header */
 .header {
   text-align: center;
@@ -303,4 +348,79 @@ select:focus {
   margin-bottom: 0.5rem;
   font-size: 0.8rem;
   color: var(--text-muted);
+}
+
+/* Page renderer / preview */
+.renderer-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.renderer-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-elevated);
+}
+
+.renderer-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+.renderer-placeholder {
+  padding: 2.5rem 1.5rem;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+.renderer-placeholder.hidden {
+  display: none;
+}
+
+.renderer-frame-wrap {
+  position: relative;
+  min-height: 320px;
+  background: var(--bg);
+}
+
+.renderer-frame-wrap.hidden {
+  display: none;
+}
+
+.renderer-frame {
+  display: block;
+  width: 100%;
+  min-height: 320px;
+  height: 60vh;
+  border: none;
+  background: #fff;
+}
+
+.renderer-frame--sandbox {
+  /* iframe uses sandbox + srcdoc for security */
+}
+
+.btn-render {
+  padding: 0.4rem 0.75rem;
+  font-size: 0.8rem;
+  font-family: var(--font-sans);
+  font-weight: 500;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.btn-render:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
 }

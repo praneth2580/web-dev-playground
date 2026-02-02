@@ -18,6 +18,21 @@
   const outputContent = document.getElementById('output-content');
   const outputTables = document.getElementById('output-tables');
   const btnCopy = document.getElementById('btn-copy');
+  const rendererPlaceholder = document.getElementById('renderer-placeholder');
+  const rendererWrap = document.getElementById('renderer-wrap');
+  const rendererFrame = document.getElementById('renderer-frame');
+  const btnRender = document.getElementById('btn-render');
+
+  function updateRenderer(html) {
+    if (!html || !html.trim()) {
+      rendererPlaceholder.classList.remove('hidden');
+      rendererWrap.classList.add('hidden');
+      return;
+    }
+    rendererPlaceholder.classList.add('hidden');
+    rendererWrap.classList.remove('hidden');
+    rendererFrame.srcdoc = html;
+  }
 
   function toggleCustomSelector() {
     const isCustom = extractMode.value === 'custom';
@@ -97,12 +112,19 @@
     try {
       const data = Parser.scrape(html, { mode, customSelector: customSel });
       showResult(data, { mode });
+      updateRenderer(html);
     } catch (err) {
       showError(err.message || 'Failed to parse HTML.');
     }
   }
 
   btnExtract.addEventListener('click', runExtract);
+
+  if (btnRender) {
+    btnRender.addEventListener('click', function () {
+      updateRenderer(htmlInput.value?.trim() || '');
+    });
+  }
 
   btnCopy.addEventListener('click', function () {
     const text = outputContent.textContent;

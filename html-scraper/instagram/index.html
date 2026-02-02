@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Instagram Parser</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="stylesheet" href="../styles.css" />
+  <style>
+    .instagram-header h1 { font-size: 1.5rem; }
+    .instagram-header .tagline { font-size: 0.9rem; }
+  </style>
+</head>
+<body>
+  <div class="portal">
+    <nav class="site-nav" aria-label="Main">
+      <ul class="site-nav__list">
+        <li><a href="../index.html" class="site-nav__link">HTML Scraper</a></li>
+        <li><a href="index.html" class="site-nav__link site-nav__link--current">Instagram Parser</a></li>
+      </ul>
+    </nav>
+    <header class="header instagram-header">
+      <h1>Instagram Parser</h1>
+      <p class="tagline">Paste Instagram page HTML to extract profile & post data</p>
+    </header>
+
+    <main class="main">
+      <section class="input-section">
+        <label for="html-input">Instagram page HTML</label>
+        <textarea
+          id="html-input"
+          placeholder="Paste HTML from an Instagram profile or post page (View Page Source)..."
+          rows="10"
+        ></textarea>
+        <div class="controls">
+          <button type="button" class="btn-extract" id="btn-parse">Parse Instagram HTML</button>
+        </div>
+      </section>
+
+      <section class="output-section">
+        <div class="output-header">
+          <h2>Parsed data</h2>
+          <button type="button" class="btn-copy hidden" id="btn-copy" title="Copy JSON">Copy JSON</button>
+        </div>
+        <div class="output-placeholder" id="output-placeholder">
+          Paste Instagram HTML above and click “Parse Instagram HTML”.
+        </div>
+        <pre class="output-content hidden" id="output-content"></pre>
+      </section>
+
+      <section class="renderer-section">
+        <div class="renderer-header">
+          <h2>Page preview</h2>
+          <button type="button" class="btn-render" id="btn-render" title="Render HTML in preview">Update preview</button>
+        </div>
+        <div class="renderer-placeholder" id="renderer-placeholder">
+          Paste HTML and click “Parse Instagram HTML” or “Update preview” to see the rendered page.
+        </div>
+        <div class="renderer-frame-wrap hidden" id="renderer-wrap">
+          <iframe id="renderer-frame" class="renderer-frame" title="Rendered HTML preview" sandbox="allow-same-origin" srcdoc=""></iframe>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script src="parser.js"></script>
+  <script>
+    (function () {
+      const htmlInput = document.getElementById('html-input');
+      const btnParse = document.getElementById('btn-parse');
+      const outputPlaceholder = document.getElementById('output-placeholder');
+      const outputContent = document.getElementById('output-content');
+      const btnCopy = document.getElementById('btn-copy');
+      const rendererPlaceholder = document.getElementById('renderer-placeholder');
+      const rendererWrap = document.getElementById('renderer-wrap');
+      const rendererFrame = document.getElementById('renderer-frame');
+      const btnRender = document.getElementById('btn-render');
+
+      function updateRenderer(html) {
+        if (!html || !html.trim()) {
+          rendererPlaceholder.classList.remove('hidden');
+          rendererWrap.classList.add('hidden');
+          return;
+        }
+        rendererPlaceholder.classList.add('hidden');
+        rendererWrap.classList.remove('hidden');
+        rendererFrame.srcdoc = html;
+      }
+
+      btnParse.addEventListener('click', function () {
+        const html = htmlInput.value?.trim();
+        if (!html) {
+          outputPlaceholder.textContent = 'Paste Instagram HTML first.';
+          outputPlaceholder.classList.remove('hidden');
+          outputContent.classList.add('hidden');
+          btnCopy.classList.add('hidden');
+          return;
+        }
+        try {
+          const data = InstagramParser.parse(html);
+          outputPlaceholder.classList.add('hidden');
+          outputContent.classList.remove('hidden');
+          outputContent.textContent = JSON.stringify(data, null, 2);
+          btnCopy.classList.remove('hidden');
+          updateRenderer(html);
+        } catch (e) {
+          outputPlaceholder.textContent = 'Parse error: ' + (e.message || String(e));
+          outputPlaceholder.classList.remove('hidden');
+          outputContent.classList.add('hidden');
+          btnCopy.classList.add('hidden');
+        }
+      });
+
+      if (btnRender) {
+        btnRender.addEventListener('click', function () {
+          updateRenderer(htmlInput.value?.trim() || '');
+        });
+      }
+
+      btnCopy.addEventListener('click', function () {
+        const text = document.getElementById('output-content').textContent;
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(
+          function () { btnCopy.textContent = 'Copied!'; setTimeout(function () { btnCopy.textContent = 'Copy JSON'; }, 1500); },
+          function () { btnCopy.textContent = 'Copy failed'; setTimeout(function () { btnCopy.textContent = 'Copy JSON'; }, 1500); }
+        );
+      });
+    })();
+  </script>
+</body>
+</html>

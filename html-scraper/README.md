@@ -21,3 +21,13 @@ A small web portal to paste static HTML and extract structured data (links, head
 - `app.js` – UI and result display.
 
 No build step or server required; run locally by opening `index.html`.
+
+## Instagram Parser
+
+The `instagram/` folder contains an Instagram-specific parser for profile and post page HTML:
+
+- **`instagram/parser.js`** – Parses Instagram HTML and extracts profile/post data from meta tags, JSON-LD, and embedded script data.
+- **`instagram/index.html`** – Small page to paste Instagram HTML and view parsed JSON.
+- **`instagram/README.md`** – API and usage.
+
+Open `instagram/index.html` in a browser to use the Instagram parser.
