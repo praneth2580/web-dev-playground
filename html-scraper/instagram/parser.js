@@ -154,6 +154,187 @@
   }
 
   /**
+   * Extract follower usernames from followers page HTML.
+   * Looks for GraphQL data in script tags containing edge_followed_by.edges[].node.username
+   */
+  function extractFollowersFromHTML(htmlString) {
+    const doc = parseHTML(htmlString);
+    const usernames = [];
+    const seen = new Set();
+
+    // Try to extract from script JSON data
+    const scriptJson = extractScriptJson(doc);
+    
+    function extractFromGraphQL(obj, depth) {
+      if (depth > 30 || obj == null) return;
+      if (typeof obj !== 'object') return;
+      
+      if (Array.isArray(obj)) {
+        obj.forEach(item => extractFromGraphQL(item, depth + 1));
+        return;
+      }
+
+      // Look for edge_followed_by structure
+      if (obj.edge_followed_by && Array.isArray(obj.edge_followed_by.edges)) {
+        obj.edge_followed_by.edges.forEach(function(edge) {
+          if (edge && edge.node && edge.node.username) {
+            const username = edge.node.username.trim();
+            if (username && !seen.has(username)) {
+              usernames.push(username);
+              seen.add(username);
+            }
+          }
+        });
+      }
+
+      // Also check for direct edges array
+      if (Array.isArray(obj.edges)) {
+        obj.edges.forEach(function(edge) {
+          if (edge && edge.node && edge.node.username) {
+            const username = edge.node.username.trim();
+            if (username && !seen.has(username)) {
+              usernames.push(username);
+              seen.add(username);
+            }
+          }
+        });
+      }
+
+      // Recursively search
+      Object.keys(obj).forEach(function(key) {
+        extractFromGraphQL(obj[key], depth + 1);
+      });
+    }
+
+    scriptJson.forEach(function(data) {
+      extractFromGraphQL(data, 0);
+    });
+
+    // Fallback: Parse DOM for Instagram profile links
+    if (usernames.length === 0) {
+      doc.querySelectorAll('a[href*="/"]').forEach(function(link) {
+        const href = link.getAttribute('href') || '';
+        const match = href.match(/instagram\.com\/([a-zA-Z0-9._]+)/);
+        if (match && match[1]) {
+          const username = match[1].trim();
+          if (username && username !== 'accounts' && username !== 'explore' && !seen.has(username)) {
+            usernames.push(username);
+            seen.add(username);
+          }
+        }
+      });
+    }
+
+    return usernames;
+  }
+
+  /**
+   * Extract following usernames from following page HTML.
+   * Looks for GraphQL data in script tags containing edge_follow.edges[].node.username
+   */
+  function extractFollowingFromHTML(htmlString) {
+    const doc = parseHTML(htmlString);
+    const usernames = [];
+    const seen = new Set();
+
+    // Try to extract from script JSON data
+    const scriptJson = extractScriptJson(doc);
+    
+    function extractFromGraphQL(obj, depth) {
+      if (depth > 30 || obj == null) return;
+      if (typeof obj !== 'object') return;
+      
+      if (Array.isArray(obj)) {
+        obj.forEach(item => extractFromGraphQL(item, depth + 1));
+        return;
+      }
+
+      // Look for edge_follow structure
+      if (obj.edge_follow && Array.isArray(obj.edge_follow.edges)) {
+        obj.edge_follow.edges.forEach(function(edge) {
+          if (edge && edge.node && edge.node.username) {
+            const username = edge.node.username.trim();
+            if (username && !seen.has(username)) {
+              usernames.push(username);
+              seen.add(username);
+            }
+          }
+        });
+      }
+
+      // Also check for direct edges array
+      if (Array.isArray(obj.edges)) {
+        obj.edges.forEach(function(edge) {
+          if (edge && edge.node && edge.node.username) {
+            const username = edge.node.username.trim();
+            if (username && !seen.has(username)) {
+              usernames.push(username);
+              seen.add(username);
+            }
+          }
+        });
+      }
+
+      // Recursively search
+      Object.keys(obj).forEach(function(key) {
+        extractFromGraphQL(obj[key], depth + 1);
+      });
+    }
+
+    scriptJson.forEach(function(data) {
+      extractFromGraphQL(data, 0);
+    });
+
+    // Fallback: Parse DOM for Instagram profile links
+    if (usernames.length === 0) {
+      doc.querySelectorAll('a[href*="/"]').forEach(function(link) {
+        const href = link.getAttribute('href') || '';
+        const match = href.match(/instagram\.com\/([a-zA-Z0-9._]+)/);
+        if (match && match[1]) {
+          const username = match[1].trim();
+          if (username && username !== 'accounts' && username !== 'explore' && !seen.has(username)) {
+            usernames.push(username);
+            seen.add(username);
+          }
+        }
+      });
+    }
+
+    return usernames;
+  }
+
+  /**
+   * Parse followers or following from HTML and detect page type.
+   * Returns { type: 'followers'|'following', usernames: string[], profileUsername: string }
+   */
+  function parseFollowersOrFollowing(htmlString) {
+    const doc = parseHTML(htmlString);
+    const meta = extractMeta(doc);
+    const fromMeta = normalizeFromMeta(meta);
+    
+    // Detect page type from URL or title
+    const url = fromMeta.url || '';
+    const title = meta['og:title'] || '';
+    const isFollowers = /followers/i.test(url) || /followers/i.test(title);
+    const isFollowing = /following/i.test(url) || /following/i.test(title);
+    
+    let type = 'followers';
+    if (isFollowing && !isFollowers) {
+      type = 'following';
+    }
+    
+    const usernames = type === 'followers' 
+      ? extractFollowersFromHTML(htmlString)
+      : extractFollowingFromHTML(htmlString);
+    
+    return {
+      type: type,
+      usernames: usernames,
+      profileUsername: fromMeta.username || null
+    };
+  }
+
+  /**
    * Build a normalized profile/post object from meta and optional JSON.
    */
   function normalizeFromMeta(meta) {
@@ -287,5 +468,8 @@
     extractStatsFromScriptData,
     normalizeFromMeta,
     normalizeFromJsonLd,
+    extractFollowersFromHTML,
+    extractFollowingFromHTML,
+    parseFollowersOrFollowing,
   };
 })(typeof window !== 'undefined' ? window : this);

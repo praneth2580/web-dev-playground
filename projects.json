@@ -91,5 +91,17 @@
       "Scoreboard",
       "Dart"
     ]
+  },
+  {
+    "name": "Instagram Follower Graph",
+    "description": "Extract Instagram followers/following from HTML and visualize relationships in a 3D graph. Find mutual connections and save to relations graph.",
+    "path": "./html-scraper/instagram/index.html",
+    "tags": [
+      "Tool",
+      "Visualization",
+      "3D",
+      "WebGL",
+      "Social Media"
+    ]
   }
 ]

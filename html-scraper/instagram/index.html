@@ -6,9 +6,201 @@
   <title>Instagram Parser</title>
   <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
   <link rel="stylesheet" href="../styles.css" />
+  <!-- 3d-force-graph via CDN -->
+  <script src="https://unpkg.com/3d-force-graph" defer></script>
+  <!-- three.js is a peer dep -->
+  <script src="https://unpkg.com/three@0.160.0/build/three.min.js" defer></script>
   <style>
     .instagram-header h1 { font-size: 1.5rem; }
     .instagram-header .tagline { font-size: 0.9rem; }
+    
+    .followers-section {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    @media (max-width: 768px) {
+      .followers-section {
+        grid-template-columns: 1fr;
+      }
+    }
+    
+    .follower-input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+    
+    .follower-input-group label {
+      font-size: 0.875rem;
+      font-weight: 500;
+      color: var(--text-muted);
+    }
+    
+    .follower-input-group textarea {
+      width: 100%;
+      padding: 0.75rem;
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      line-height: 1.5;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      resize: vertical;
+      min-height: 120px;
+    }
+    
+    .follower-input-group textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+      box-shadow: 0 0 0 3px rgba(124, 108, 246, 0.2);
+    }
+    
+    .follower-stats {
+      margin-top: 0.5rem;
+      padding: 0.75rem;
+      background: var(--surface-elevated);
+      border-radius: var(--radius);
+      font-size: 0.85rem;
+      color: var(--text-muted);
+    }
+    
+    .follower-stats strong {
+      color: var(--text);
+    }
+    
+    .graph-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      margin-bottom: 2rem;
+    }
+    
+    .graph-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 1rem 1.25rem;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface-elevated);
+    }
+    
+    .graph-header h2 {
+      margin: 0;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    
+    .graph-controls {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+    }
+    
+    .graph-controls label {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    
+    .graph-controls label.row {
+      flex-direction: row;
+    }
+    
+    .graph-controls input[type="range"] {
+      width: 100px;
+    }
+    
+    .graph-controls input[type="checkbox"] {
+      width: auto;
+      margin: 0;
+    }
+    
+    .graph-container {
+      position: relative;
+      width: 100%;
+      height: 600px;
+      background: #0b0f14;
+    }
+    
+    .graph-placeholder {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+    
+    .mutual-section {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.25rem;
+      margin-bottom: 2rem;
+    }
+    
+    .mutual-section h2 {
+      margin: 0 0 1rem;
+      font-size: 1rem;
+      font-weight: 600;
+    }
+    
+    .mutual-count {
+      font-size: 1.1rem;
+      color: var(--accent);
+      margin-bottom: 0.75rem;
+    }
+    
+    .mutual-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    
+    .mutual-tag {
+      padding: 0.4rem 0.75rem;
+      background: var(--surface-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      font-size: 0.85rem;
+      color: var(--text);
+    }
+    
+    .btn-secondary {
+      padding: 0.4rem 0.75rem;
+      font-size: 0.8rem;
+      background: transparent;
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    
+    .btn-secondary:hover {
+      color: var(--text);
+      border-color: var(--text-muted);
+    }
+    
+    .btn-success {
+      background: var(--success);
+      color: #fff;
+      border: none;
+    }
+    
+    .btn-success:hover {
+      background: #22c55e;
+    }
   </style>
 </head>
 <body>
@@ -48,6 +240,68 @@
         <pre class="output-content hidden" id="output-content"></pre>
       </section>
 
+      <section class="followers-section">
+        <div class="follower-input-group">
+          <label for="followers-input">Followers Page HTML</label>
+          <textarea
+            id="followers-input"
+            placeholder="Paste HTML from Instagram followers page (View Page Source)..."
+            rows="8"
+          ></textarea>
+          <div class="controls">
+            <button type="button" class="btn-extract" id="btn-parse-followers">Parse Followers</button>
+          </div>
+          <div class="follower-stats hidden" id="followers-stats">
+            <strong id="followers-count">0</strong> followers extracted
+          </div>
+        </div>
+
+        <div class="follower-input-group">
+          <label for="following-input">Following Page HTML</label>
+          <textarea
+            id="following-input"
+            placeholder="Paste HTML from Instagram following page (View Page Source)..."
+            rows="8"
+          ></textarea>
+          <div class="controls">
+            <button type="button" class="btn-extract" id="btn-parse-following">Parse Following</button>
+          </div>
+          <div class="follower-stats hidden" id="following-stats">
+            <strong id="following-count">0</strong> following extracted
+          </div>
+        </div>
+      </section>
+
+      <section class="mutual-section hidden" id="mutual-section">
+        <h2>Mutual Connections</h2>
+        <div class="mutual-count" id="mutual-count">0 mutual connections</div>
+        <div class="mutual-list" id="mutual-list"></div>
+      </section>
+
+      <section class="graph-section">
+        <div class="graph-header">
+          <h2>3D Relationship Graph</h2>
+          <div class="graph-controls">
+            <label>
+              Link Distance
+              <input type="range" id="link-distance" min="10" max="300" value="100">
+            </label>
+            <label class="row">
+              <input type="checkbox" id="toggle-physics" checked>
+              Physics
+            </label>
+            <button type="button" class="btn-secondary" id="btn-generate-graph">Generate Graph</button>
+            <button type="button" class="btn-secondary btn-success" id="btn-save-graph">Save to Relations Graph</button>
+            <button type="button" class="btn-secondary" id="btn-fit">Zoom to Fit</button>
+          </div>
+        </div>
+        <div class="graph-container" id="graph-container">
+          <div class="graph-placeholder" id="graph-placeholder">
+            Parse followers and following lists above, then click "Generate Graph" to visualize relationships.
+          </div>
+        </div>
+      </section>
+
       <section class="renderer-section">
         <div class="renderer-header">
           <h2>Page preview</h2>
@@ -64,6 +318,7 @@
   </div>
 
   <script src="parser.js"></script>
+  <script src="graph.js"></script>
   <script>
     (function () {
       const htmlInput = document.getElementById('html-input');
@@ -75,6 +330,37 @@
       const rendererWrap = document.getElementById('renderer-wrap');
       const rendererFrame = document.getElementById('renderer-frame');
       const btnRender = document.getElementById('btn-render');
+      
+      // Follower/Following parsing elements
+      const followersInput = document.getElementById('followers-input');
+      const followingInput = document.getElementById('following-input');
+      const btnParseFollowers = document.getElementById('btn-parse-followers');
+      const btnParseFollowing = document.getElementById('btn-parse-following');
+      const followersStats = document.getElementById('followers-stats');
+      const followingStats = document.getElementById('following-stats');
+      const followersCount = document.getElementById('followers-count');
+      const followingCount = document.getElementById('following-count');
+      
+      // Graph elements
+      const graphContainer = document.getElementById('graph-container');
+      const graphPlaceholder = document.getElementById('graph-placeholder');
+      const btnGenerateGraph = document.getElementById('btn-generate-graph');
+      const btnSaveGraph = document.getElementById('btn-save-graph');
+      const btnFit = document.getElementById('btn-fit');
+      const linkDistance = document.getElementById('link-distance');
+      const togglePhysics = document.getElementById('toggle-physics');
+      
+      // Mutual section
+      const mutualSection = document.getElementById('mutual-section');
+      const mutualCount = document.getElementById('mutual-count');
+      const mutualList = document.getElementById('mutual-list');
+      
+      // State
+      let followersData = [];
+      let followingData = [];
+      let profileUsername = null;
+      let graphInstance = null;
+      let currentGraphData = null;
 
       function updateRenderer(html) {
         if (!html || !html.trim()) {
@@ -124,6 +410,184 @@
           function () { btnCopy.textContent = 'Copied!'; setTimeout(function () { btnCopy.textContent = 'Copy JSON'; }, 1500); },
           function () { btnCopy.textContent = 'Copy failed'; setTimeout(function () { btnCopy.textContent = 'Copy JSON'; }, 1500); }
         );
+      });
+
+      // Parse followers
+      btnParseFollowers.addEventListener('click', function () {
+        const html = followersInput.value?.trim();
+        if (!html) {
+          alert('Please paste followers page HTML first.');
+          return;
+        }
+        try {
+          const result = InstagramParser.parseFollowersOrFollowing(html);
+          followersData = result.usernames;
+          if (result.profileUsername && !profileUsername) {
+            profileUsername = result.profileUsername;
+          }
+          followersCount.textContent = followersData.length;
+          followersStats.classList.remove('hidden');
+          updateMutualSection();
+        } catch (e) {
+          alert('Parse error: ' + (e.message || String(e)));
+        }
+      });
+
+      // Parse following
+      btnParseFollowing.addEventListener('click', function () {
+        const html = followingInput.value?.trim();
+        if (!html) {
+          alert('Please paste following page HTML first.');
+          return;
+        }
+        try {
+          const result = InstagramParser.parseFollowersOrFollowing(html);
+          followingData = result.usernames;
+          if (result.profileUsername && !profileUsername) {
+            profileUsername = result.profileUsername;
+          }
+          followingCount.textContent = followingData.length;
+          followingStats.classList.remove('hidden');
+          updateMutualSection();
+        } catch (e) {
+          alert('Parse error: ' + (e.message || String(e)));
+        }
+      });
+
+      // Update mutual section
+      function updateMutualSection() {
+        if (followersData.length === 0 || followingData.length === 0) {
+          mutualSection.classList.add('hidden');
+          return;
+        }
+
+        const followersSet = new Set(followersData);
+        const mutuals = followingData.filter(function(username) {
+          return followersSet.has(username);
+        });
+
+        if (mutuals.length === 0) {
+          mutualSection.classList.add('hidden');
+          return;
+        }
+
+        mutualCount.textContent = mutuals.length + ' mutual connection' + (mutuals.length !== 1 ? 's' : '');
+        mutualList.innerHTML = '';
+        mutuals.forEach(function(username) {
+          const tag = document.createElement('span');
+          tag.className = 'mutual-tag';
+          tag.textContent = username;
+          mutualList.appendChild(tag);
+        });
+        mutualSection.classList.remove('hidden');
+      }
+
+      // Generate graph
+      btnGenerateGraph.addEventListener('click', function () {
+        if (followersData.length === 0 && followingData.length === 0) {
+          alert('Please parse followers and/or following lists first.');
+          return;
+        }
+
+        if (!window.InstagramGraph) {
+          alert('Graph module not loaded. Please refresh the page.');
+          return;
+        }
+
+        if (!window.ForceGraph3D) {
+          alert('3d-force-graph library not loaded. Please wait for scripts to load.');
+          return;
+        }
+
+        try {
+          const graphData = InstagramGraph.buildGraphFromFollowers(
+            followersData,
+            followingData,
+            profileUsername || 'profile_user'
+          );
+          currentGraphData = graphData;
+
+          // Hide placeholder
+          graphPlaceholder.classList.add('hidden');
+
+          // Clear existing graph
+          graphContainer.innerHTML = '';
+          const graphEl = document.createElement('div');
+          graphEl.id = 'graph';
+          graphEl.style.width = '100%';
+          graphEl.style.height = '100%';
+          graphContainer.appendChild(graphEl);
+
+          // Render graph
+          const options = {
+            linkDistance: Number(linkDistance.value) || 100,
+            physics: togglePhysics.checked
+          };
+
+          graphInstance = InstagramGraph.renderGraph(graphEl, graphData, options);
+
+          // Configure physics toggle
+          if (!options.physics) {
+            graphInstance.d3VelocityDecay(1);
+          }
+
+          // Initial zoom to fit
+          setTimeout(function() {
+            graphInstance.zoomToFit(600, 40);
+          }, 500);
+        } catch (e) {
+          alert('Graph generation error: ' + (e.message || String(e)));
+          console.error(e);
+        }
+      });
+
+      // Save to relations graph
+      btnSaveGraph.addEventListener('click', function () {
+        if (!currentGraphData) {
+          alert('Please generate a graph first.');
+          return;
+        }
+
+        try {
+          InstagramGraph.saveToRelationsGraph(currentGraphData, false);
+          const originalText = btnSaveGraph.textContent;
+          btnSaveGraph.textContent = 'Saved!';
+          btnSaveGraph.classList.add('btn-success');
+          setTimeout(function() {
+            btnSaveGraph.textContent = originalText;
+          }, 2000);
+        } catch (e) {
+          alert('Save error: ' + (e.message || String(e)));
+        }
+      });
+
+      // Zoom to fit
+      btnFit.addEventListener('click', function () {
+        if (graphInstance) {
+          graphInstance.zoomToFit(600, 40);
+        }
+      });
+
+      // Link distance slider
+      linkDistance.addEventListener('input', function () {
+        if (graphInstance) {
+          graphInstance.d3Force('link').distance(function() {
+            return Number(linkDistance.value) || 100;
+          });
+          graphInstance.numDimensions(3); // trigger re-heat
+        }
+      });
+
+      // Physics toggle
+      togglePhysics.addEventListener('change', function () {
+        if (graphInstance) {
+          const enabled = togglePhysics.checked;
+          if (enabled) {
+            graphInstance.d3VelocityDecay(0.3);
+          } else {
+            graphInstance.d3VelocityDecay(1); // freeze
+          }
+        }
       });
     })();
   </script>
